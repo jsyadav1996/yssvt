@@ -84,30 +84,7 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Header */}
-      <header className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 z-10">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <h1 className="text-lg font-bold text-gray-900">Events</h1>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setFilterActive(!filterActive)}
-              className={`p-2 rounded-lg ${filterActive ? 'bg-primary-100 text-primary-600' : 'text-gray-500'}`}
-            >
-              <Filter className="h-5 w-5" />
-            </button>
-            {user?.role === 'admin' || user?.role === 'manager' ? (
-              <button
-                onClick={() => router.push('/events/create')}
-                className="btn-primary btn-sm"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            ) : null}
-          </div>
-        </div>
-      </header>
+      
 
       {/* Search Bar */}
       <div className="px-4 py-3 bg-white border-b border-gray-200">
@@ -191,37 +168,6 @@ export default function EventsPage() {
           </div>
         )}
       </main>
-
-      {/* Mobile Bottom Navigation */}
-      <nav className="mobile-nav">
-        <div className="flex justify-around">
-          <button 
-            className="mobile-nav-item"
-            onClick={() => router.push('/dashboard')}
-          >
-            <Calendar className="h-5 w-5 mb-1" />
-            <span>Home</span>
-          </button>
-          <button className="mobile-nav-item active">
-            <Calendar className="h-5 w-5 mb-1" />
-            <span>Events</span>
-          </button>
-          <button 
-            className="mobile-nav-item"
-            onClick={() => router.push('/donations')}
-          >
-            <Calendar className="h-5 w-5 mb-1" />
-            <span>Donate</span>
-          </button>
-          <button 
-            className="mobile-nav-item"
-            onClick={() => router.push('/profile')}
-          >
-            <Calendar className="h-5 w-5 mb-1" />
-            <span>Profile</span>
-          </button>
-        </div>
-      </nav>
     </div>
   );
 } 

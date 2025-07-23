@@ -22,6 +22,7 @@ interface AuthActions {
     address?: string;
   }) => Promise<void>;
   logout: () => void;
+  updateUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearError: () => void;
@@ -82,6 +83,11 @@ export const useAuthStore = create<AuthStore>()(
           token: null,
           isAuthenticated: false,
           error: null,
+        }),
+
+      updateUser: (user: User) =>
+        set({
+          user,
         }),
 
       setLoading: (loading: boolean) =>

@@ -237,13 +237,13 @@ export default function LoginPage() {
         {/* Sign Up Link */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-600">
-            Don't have an account?{' '}
+            Not a member?{' '}
             <button
               type="button"
               className="font-medium text-primary-600"
               onClick={() => router.push('/register')}
             >
-              Sign up
+              Join Now
             </button>
           </p>
         </div>

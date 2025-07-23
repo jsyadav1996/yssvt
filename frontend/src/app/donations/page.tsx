@@ -126,20 +126,6 @@ export default function DonationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Header */}
-      <header className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 z-10">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <h1 className="text-lg font-bold text-gray-900">Donations</h1>
-          </div>
-          <button
-            onClick={() => setShowDonationForm(true)}
-            className="btn-primary btn-sm"
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-        </div>
-      </header>
 
       {/* Main Content */}
       <main className="px-4 py-6 pb-20">
@@ -345,36 +331,6 @@ export default function DonationsPage() {
         </div>
       )}
 
-      {/* Mobile Bottom Navigation */}
-      <nav className="mobile-nav">
-        <div className="flex justify-around">
-          <button 
-            className="mobile-nav-item"
-            onClick={() => router.push('/dashboard')}
-          >
-            <Heart className="h-5 w-5 mb-1" />
-            <span>Home</span>
-          </button>
-          <button 
-            className="mobile-nav-item"
-            onClick={() => router.push('/events')}
-          >
-            <Heart className="h-5 w-5 mb-1" />
-            <span>Events</span>
-          </button>
-          <button className="mobile-nav-item active">
-            <Heart className="h-5 w-5 mb-1" />
-            <span>Donate</span>
-          </button>
-          <button 
-            className="mobile-nav-item"
-            onClick={() => router.push('/profile')}
-          >
-            <Heart className="h-5 w-5 mb-1" />
-            <span>Profile</span>
-          </button>
-        </div>
-      </nav>
     </div>
   );
 } 

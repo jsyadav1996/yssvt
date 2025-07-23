@@ -41,14 +41,20 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      await registerUser({
+      const postData = {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
-        password: data.password,
-        phone: data.phone,
-        address: data.address,
-      });
+        password: data.password
+      } as { firstName: string; lastName: string; email: string; password: string; phone?: string, address?: string };
+
+      if (data.phone) {
+        postData.phone = data.phone;
+      }
+      if (data.address) {
+        postData.address = data.address;
+      }
+      await registerUser(postData);
       toast.success('Registration successful!');
       router.push('/dashboard');
     } catch (error) {
