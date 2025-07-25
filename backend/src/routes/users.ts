@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
-import { getAllUsers, getUserById, updateProfile, createUser, searchUsers } from '../controllers/userController';
+import { getAllUsers, getUserById, updateProfile, createUser, searchUsers, updateUser, deleteUser } from '../controllers/userController';
 import { requireManager } from '../middleware/auth';
 
 const router = Router();
@@ -41,9 +41,26 @@ router.get('/:id', getUserById);
 // @access  Private
 router.put('/profile', validateUserPayload, handleValidationErrors,  updateProfile);
 
-router.post('/', validateUserPayload, handleValidationErrors,  createUser);
+// @route   POST /api/users
+// @desc    Create new user (admin only)
+// @access  Private
+router.post('/', requireManager, validateUserPayload, handleValidationErrors, createUser);
+
+// @route   POST /api/users/search
+// @desc    Search users by firstName, lastName, email, or phone
+// @access  Private
 router.post('/search', [
   body('searchText').trim().isLength({ max: 50 }).withMessage('Search text must be less than 50 characters')
-], handleValidationErrors,  searchUsers);
+], handleValidationErrors, searchUsers);
+
+// @route   PUT /api/users/:id
+// @desc    Update user by ID (admin only)
+// @access  Private
+router.put('/:id', requireManager, validateUserPayload, handleValidationErrors, updateUser);
+
+// @route   DELETE /api/users/:id
+// @desc    Delete user by ID (admin only)
+// @access  Private
+router.delete('/:id', requireManager, deleteUser);
 
 export default router; 

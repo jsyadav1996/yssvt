@@ -2,15 +2,78 @@ import { Request, Response } from 'express';
 import { User } from '../models/User';
 import { AuthRequest, UserRole } from '../types';
 
-// @desc    Get all users (admin/manager only)
+// @desc    Get all users with pagination and search (admin/manager only)
 // @access  Private
+// @query   page: number (default: 1) - Page number for pagination
+// @query   limit: number (default: 10) - Number of users per page
+// @query   search: string (optional) - Search in firstName, lastName, email, phone
+// @query   role: string (optional) - Filter by user role
+// @query   isActive: string (optional) - Filter by active status ('true' or 'false')
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = req.query.search as string || '';
+    const role = req.query.role as string || '';
+    const isActive = req.query.isActive as string || '';
+
+    // Calculate skip value for pagination
+    const skip = (page - 1) * limit;
+
+    // Build search query
+    const searchQuery: any = {};
     
+    if (search) {
+      const searchRegex = new RegExp(search, 'i');
+      searchQuery.$or = [
+        { firstName: searchRegex },
+        { lastName: searchRegex },
+        { email: searchRegex },
+        { phone: searchRegex }
+      ];
+    }
+
+    if (role) {
+      searchQuery.role = role;
+    }
+
+    if (isActive !== '') {
+      searchQuery.isActive = isActive === 'true';
+    }
+
+    // Get total count for pagination
+    const totalUsers = await User.countDocuments(searchQuery);
+    
+    // Get users with pagination and search
+    const users = await User.find(searchQuery)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(totalUsers / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
     res.json({
       success: true,
-      data: { users }
+      data: { 
+        users,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalUsers,
+          hasNextPage,
+          hasPrevPage,
+          limit
+        },
+        filters: {
+          search,
+          role,
+          isActive
+        }
+      }
     });
   } catch (error) {
     console.error('Get users error:', error);
@@ -60,7 +123,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     if (address) updateFields.address = address;
 
     const user = await User.findByIdAndUpdate(
-      req.user!._id,
+      (req.user as any)._id,
       updateFields,
       { new: true, runValidators: true }
     ).select('-password');
@@ -167,6 +230,103 @@ export const searchUsers = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Server error during user search'
+    });
+  }
+};
+
+// @desc    Update user by ID (admin only)
+// @access  Private
+export const updateUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName, email, phone, address, role, isActive } = req.body;
+    
+    // Check if user exists
+    const existingUser = await User.findById(id);
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if email is being updated and if it's already taken
+    if (email && email !== existingUser.email) {
+      const emailExists = await User.findOne({ email, _id: { $ne: id } });
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already exists'
+        });
+      }
+    }
+
+    // Build update object
+    const updateFields: any = {};
+    if (firstName !== undefined) updateFields.firstName = firstName;
+    if (lastName !== undefined) updateFields.lastName = lastName;
+    if (email !== undefined) updateFields.email = email;
+    if (phone !== undefined) updateFields.phone = phone;
+    if (address !== undefined) updateFields.address = address;
+    if (role !== undefined) updateFields.role = role;
+    if (isActive !== undefined) updateFields.isActive = isActive;
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      updateFields,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    return res.json({
+      success: true,
+      message: 'User updated successfully',
+      data: { user: updatedUser }
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during user update'
+    });
+  }
+};
+
+// @desc    Delete user by ID (admin only)
+// @access  Private
+export const deleteUser = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Prevent admin from deleting themselves
+    if (req.user && (req.user as any)._id.toString() === id) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot delete your own account'
+      });
+    }
+
+    // Delete user
+    await User.findByIdAndDelete(id);
+
+    return res.json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during user deletion'
     });
   }
 };
