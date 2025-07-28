@@ -43,13 +43,23 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
 
       // Actions
-      login: (user: User, token: string) =>
+      login: (user: User, token: string) => {
+        // Store token in localStorage for backward compatibility
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('token', token);
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+        
+        // Set token in API client
+        apiClient.setToken(token);
+        
         set({
           user,
           token,
           isAuthenticated: true,
           error: null,
-        }),
+        });
+      },
 
       register: async (userData) => {
         try {
@@ -58,6 +68,15 @@ export const useAuthStore = create<AuthStore>()(
           const data = await apiClient.register(userData);
           
           if (data.success && data.data) {
+            // Store token in localStorage for backward compatibility
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('token', data.data.token);
+              localStorage.setItem('user', JSON.stringify(data.data.user));
+            }
+            
+            // Set token in API client
+            apiClient.setToken(data.data.token);
+            
             set({
               user: data.data.user,
               token: data.data.token,
@@ -77,13 +96,23 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      logout: () =>
+      logout: () => {
+        // Clear localStorage for backward compatibility
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+        
+        // Clear token from API client
+        apiClient.setToken(null);
+        
         set({
           user: null,
           token: null,
           isAuthenticated: false,
           error: null,
-        }),
+        });
+      },
 
       updateUser: (user: User) =>
         set({
