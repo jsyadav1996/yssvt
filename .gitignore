@@ -1,5 +1,6 @@
 backend/node_modules
 frontend/node_modules
+react/node_modules
 backend/.env
 backend/env.example
 frontend/.env
