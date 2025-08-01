@@ -1,20 +1,62 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth';
 import { 
   Menu, 
   X, 
-  LogOut
+  LogOut,
+  Download
 } from 'lucide-react';
 import { navigationRoutes } from '@/routes';
+
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
 
 export function SidebarDrawer() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   const navItems = navigationRoutes.filter(item => item.requiresAuth ? !!user : true);
+
+  useEffect(() => {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true);
+      return;
+    }
+
+    // Listen for beforeinstallprompt event
+    const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('🎉 Install prompt available!');
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    // Listen for appinstalled event
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+      console.log('✅ PWA installed successfully!');
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
 
   const isActive = (href: string) => {
     if (href === '/dashboard' && location.pathname === '/dashboard') return true;
@@ -37,6 +79,31 @@ export function SidebarDrawer() {
     logout();
     navigate('/');
     setIsOpen(false);
+  };
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) {
+      console.log('No install prompt available');
+      return;
+    }
+
+    try {
+      console.log('🚀 Showing install prompt...');
+      await deferredPrompt.prompt();
+
+      const { outcome } = await deferredPrompt.userChoice;
+
+      if (outcome === 'accepted') {
+        console.log('✅ User accepted the install prompt');
+        setIsInstalled(true);
+      } else {
+        console.log('❌ User dismissed the install prompt');
+      }
+
+      setDeferredPrompt(null);
+    } catch (error) {
+      console.error('❌ Error during installation:', error);
+    }
   };
 
   return (
@@ -90,6 +157,19 @@ export function SidebarDrawer() {
             <X className="h-6 w-6" />
           </button>
         </div>
+
+        {/* Install App Button - Show when available and not installed */}
+        {deferredPrompt && !isInstalled && (
+          <div className="p-4 border-b border-gray-200">
+            <button
+              onClick={handleInstallApp}
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left bg-green-50 text-green-700 hover:bg-green-100 transition-colors border border-green-200"
+            >
+              <Download className="h-5 w-5" />
+              <span className="font-medium">Install App</span>
+            </button>
+          </div>
+        )}
 
         {/* Navigation Items - Same for all users */}
         <nav className="p-4">

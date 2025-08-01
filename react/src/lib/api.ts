@@ -29,7 +29,7 @@ interface PaginatedUsersResponse {
 
 // User interfaces
 interface User {
-  id: string
+  _id: string
   firstName: string
   lastName: string
   email: string
@@ -95,7 +95,9 @@ interface CreateDonationData {
 
 class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-    const token = localStorage.getItem('token')
+    // Import auth store dynamically to avoid circular dependency
+    const { useAuthStore } = await import('@/store/auth')
+    const token = useAuthStore.getState().token
     
     const config: RequestInit = {
       headers: {

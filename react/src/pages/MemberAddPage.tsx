@@ -1,19 +1,18 @@
 import React from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import UserForm from '@/components/UserForm'
 
-const MemberEditPage: React.FC = () => {
+const MemberAddPage: React.FC = () => {
   const navigate = useNavigate()
-  const { id } = useParams<{ id: string }>()
 
   const handleSuccess = () => {
-    // Navigate back to member detail page after successful update
-    navigate(`/members/${id}`)
+    // Navigate back to members list after successful creation
+    navigate('/members')
   }
 
   const handleCancel = () => {
-    navigate(`/members/${id}`)
+    navigate('/members')
   }
 
   return (
@@ -21,21 +20,20 @@ const MemberEditPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center space-x-4">
         <button
-          onClick={() => navigate(`/members/${id}`)}
+          onClick={() => navigate('/members')}
           className="p-2 text-gray-500 hover:text-gray-700"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Member</h1>
-          <p className="text-gray-600">Update member information</p>
+          <h1 className="text-2xl font-bold text-gray-900">Add New Member</h1>
+          <p className="text-gray-600">Create a new community member</p>
         </div>
       </div>
 
       {/* User Form Component */}
       <UserForm 
-        mode="edit"
-        userId={id}
+        mode="add"
         onSuccess={handleSuccess}
         onCancel={handleCancel}
       />
@@ -43,4 +41,4 @@ const MemberEditPage: React.FC = () => {
   )
 }
 
-export default MemberEditPage 
+export default MemberAddPage 

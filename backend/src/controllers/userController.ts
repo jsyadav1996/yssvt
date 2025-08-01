@@ -97,13 +97,13 @@ export const getUserById = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
-      data: { user }
+      data: user
     });
   } catch (error) {
     console.error('Get user error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error'
     });
@@ -260,17 +260,23 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
         });
       }
     }
-
+    console.log('email', email)
     // Build update object
     const updateFields: any = {};
     if (firstName !== undefined) updateFields.firstName = firstName;
     if (lastName !== undefined) updateFields.lastName = lastName;
-    if (email !== undefined) updateFields.email = email;
+    if (email !== '' && email !== undefined) {
+      updateFields.email = email;
+    } else {
+      // unset email
+      updateFields.$unset = { email: '' };
+    }
     if (phone !== undefined) updateFields.phone = phone;
     if (address !== undefined) updateFields.address = address;
     if (role !== undefined) updateFields.role = role;
     if (isActive !== undefined) updateFields.isActive = isActive;
 
+    console.log('updateFields', updateFields)
     // Update user
     const updatedUser = await User.findByIdAndUpdate(
       id,

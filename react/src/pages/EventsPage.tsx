@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { apiClient, Event } from '@/lib/api'
-import { Calendar, Plus, MapPin, Users, Clock, Filter } from 'lucide-react'
+import { Calendar, Plus, MapPin, Users, Clock } from 'lucide-react'
 
 export default function EventsPage() {
   const navigate = useNavigate()

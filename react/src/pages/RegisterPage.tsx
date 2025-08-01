@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
+import { apiClient } from '@/lib/api'
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -125,7 +126,6 @@ export default function RegisterPage() {
           {/* Welcome Section */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="h-8 w-8 text-primary-600" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h2>
             <p className="text-gray-600">Join the YSSVT Community today</p>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
-import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { apiClient } from '@/lib/api'
 
 export default function LoginPage() {

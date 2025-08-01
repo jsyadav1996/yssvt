@@ -22,7 +22,7 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/icons/icon-72x72.svg',
+            src: '/icons/icon-72x72.png',
             sizes: '72x72',
             type: 'image/svg+xml',
             purpose: 'maskable any'
@@ -40,7 +40,7 @@ export default defineConfig({
             purpose: 'maskable any'
           },
           {
-            src: '/icons/icon-144x144.svg',
+            src: '/icons/icon-144x144.png',
             sizes: '144x144',
             type: 'image/svg+xml',
             purpose: 'maskable any'

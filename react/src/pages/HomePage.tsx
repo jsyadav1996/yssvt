@@ -1,10 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Users, Heart, ArrowRight } from 'lucide-react'
-import { useAuthStore } from '@/store/auth'
 
 export default function HomePage() {
   const navigate = useNavigate()
-  const { login } = useAuthStore()
 
   const features = [
     {
@@ -55,15 +53,6 @@ export default function HomePage() {
               className="btn-outline w-full"
             >
               View Events
-            </button>
-            <button
-              onClick={() => {
-                login({ id: '1', name: 'Test User', email: 'test@example.com', role: 'member' }, 'test-token')
-                navigate('/dashboard')
-              }}
-              className="btn bg-green-600 text-white active:bg-green-700 w-full"
-            >
-              Test Login (Go to Dashboard)
             </button>
           </div>
         </div>

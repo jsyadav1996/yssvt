@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { apiClient, Donation } from '@/lib/api'
-import { Heart, Plus, DollarSign, Calendar, Filter, TrendingUp } from 'lucide-react'
+import { Heart, Plus, DollarSign, Calendar, TrendingUp } from 'lucide-react'
 
 export default function DonationsPage() {
   const navigate = useNavigate()

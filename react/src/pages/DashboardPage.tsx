@@ -46,7 +46,7 @@ export default function DashboardPage() {
       {/* Welcome Section */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-1">
-          Welcome back, {user?.name || 'Member'}! 👋
+          Welcome back, {user?.firstName || 'Member'}! 👋
         </h2>
         <p className="text-gray-600 text-sm">
           Here's what's happening in your community today.
