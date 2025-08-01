@@ -7,3 +7,4 @@ frontend/.env
 frontend/.next
 backend/dist
 react/.env
+react/dist
