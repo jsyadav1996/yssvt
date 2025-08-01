@@ -6,3 +6,4 @@ backend/env.example
 frontend/.env
 frontend/.next
 backend/dist
+react/.env

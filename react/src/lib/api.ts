@@ -1,5 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api'
-
+console.log('import.meta.env.VITE_API_URL', import.meta.env.VITE_API_URL)
 interface ApiResponse<T = any> {
   success: boolean
   data?: T
@@ -109,7 +108,7 @@ class ApiClient {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, config)
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, config)
       const data = await response.json()
       
       if (!response.ok) {
