@@ -12,10 +12,40 @@ import {
   DonationsResponse
 } from '@/types';
 
+// Function to get token from localStorage (for backward compatibility)
+const getTokenFromStorage = (): string | null => {
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
+  try {
+    // First try to get from localStorage directly
+    const token = localStorage.getItem('token');
+    if (token) return token;
+    
+    // If not found, try to get from Zustand persist storage
+    const authStorage = localStorage.getItem('auth-storage');
+    if (authStorage) {
+      const parsed = JSON.parse(authStorage);
+      return parsed.state?.token || null;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting token from storage:', error);
+    return null;
+  }
+};
+
 class ApiClient {
   private client: AxiosInstance;
+  private currentToken: string | null = null;
 
   constructor() {
+    // Check if we're in a browser environment
+    const isBrowser = typeof window !== 'undefined';
+    
     this.client = axios.create({
       baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
       headers: {
@@ -23,32 +53,86 @@ class ApiClient {
       },
     });
 
-    // Request interceptor to add auth token
-    this.client.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+    // Only set up interceptors in browser environment
+    if (isBrowser) {
+      // Request interceptor to add auth token
+      this.client.interceptors.request.use(
+        (config) => {
+          // Use currentToken if set, otherwise get from storage
+          const token = this.currentToken || getTokenFromStorage();
+          console.log('API Request - Token found:', !!token);
+          
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
+          return config;
+        },
+        (error) => {
+          return Promise.reject(error);
         }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
+      );
 
-    // Response interceptor to handle errors
-    this.client.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
+      // Response interceptor to handle errors
+      this.client.interceptors.response.use(
+        (response) => response,
+        (error) => {
+          if (error.response?.status === 401) {
+            // Clear both localStorage and Zustand persist storage
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              localStorage.removeItem('auth-storage');
+            }
+            // window.location.href = '/login';
+          }
+          return Promise.reject(error);
         }
-        return Promise.reject(error);
-      }
-    );
+      );
+    }
+  }
+
+  // Token management
+  setToken(token: string | null) {
+    this.currentToken = token;
+  }
+
+  getToken(): string | null {
+    return this.currentToken || getTokenFromStorage();
+  }
+
+  // Debug method to check token status
+  debugTokenStatus() {
+    // Check if we're in a browser environment
+    if (typeof window === 'undefined') {
+      console.log('=== Token Debug Info ===');
+      console.log('Running on server side - no localStorage available');
+      console.log('========================');
+      return {
+        directToken: false,
+        authStorage: false,
+        currentToken: !!this.currentToken,
+        storageToken: false
+      };
+    }
+    
+    const directToken = localStorage.getItem('token');
+    const authStorage = localStorage.getItem('auth-storage');
+    const currentToken = this.currentToken;
+    const storageToken = getTokenFromStorage();
+    
+    console.log('=== Token Debug Info ===');
+    console.log('Direct localStorage token:', !!directToken);
+    console.log('Zustand auth-storage exists:', !!authStorage);
+    console.log('Current API client token:', !!currentToken);
+    console.log('Storage function token:', !!storageToken);
+    console.log('========================');
+    
+    return {
+      directToken: !!directToken,
+      authStorage: !!authStorage,
+      currentToken: !!currentToken,
+      storageToken: !!storageToken
+    };
   }
 
   // Auth endpoints
@@ -86,6 +170,12 @@ class ApiClient {
   async updateProfile(data: Partial<User>): Promise<ApiResponse<{ user: User }>> {
     const response: AxiosResponse<ApiResponse<{ user: User }>> = 
       await this.client.put('/users/profile', data);
+    return response.data;
+  }
+
+  async updateUser(id: string, data: Partial<User>): Promise<ApiResponse<{ user: User }>> {
+    const response: AxiosResponse<ApiResponse<{ user: User }>> = 
+      await this.client.put(`/users/${id}`, data);
     return response.data;
   }
 

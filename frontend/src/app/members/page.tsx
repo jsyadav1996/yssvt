@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users, Search, User, Shield, Calendar, Mail, Phone } from 'lucide-react';
+import { Users, Search, User, Shield, Calendar, Mail, Phone, Edit } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { apiClient } from '@/lib/api';
 import { User as UserType } from '@/types';
@@ -15,16 +15,13 @@ export default function MembersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
+  console.log('MembersPage');
+
   useEffect(() => {
-    // Check if we have a token in localStorage
-    const token = localStorage.getItem('token');
-    if (!token) {
+    // Check authentication state
+    if (!isAuthenticated) {
+      console.log('Not authenticated, redirecting to login');
       router.push('/login');
-      return;
-    }
-    
-    // If we have a token but not authenticated yet, wait a bit
-    if (!isAuthenticated && token) {
       return;
     }
     
@@ -79,14 +76,8 @@ export default function MembersPage() {
     }
   };
 
-  // Check if we have a token in localStorage
-  const token = localStorage.getItem('token');
-  if (!token) {
-    return null;
-  }
-
   // Show loading while authentication is being determined
-  if (!isAuthenticated && token) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="flex items-center justify-center py-12">
@@ -211,11 +202,21 @@ export default function MembersPage() {
                         </div>
                       </div>
                       
-                      {/* Action Button */}
-                      <div className="flex-shrink-0">
+                      {/* Action Buttons */}
+                      <div className="flex-shrink-0 flex items-center space-x-1">
+                        {(user?.role === 'admin' || user?.role === 'manager') && (
+                          <button
+                            onClick={() => router.push(`/members/${member._id}/edit`)}
+                            className="text-blue-600 hover:text-blue-700 p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                            title="Edit member"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => router.push(`/members/${member._id}`)}
                           className="text-primary-600 hover:text-primary-700 p-2 rounded-lg hover:bg-primary-50 transition-colors"
+                          title="View profile"
                         >
                           <User className="h-5 w-5" />
                         </button>

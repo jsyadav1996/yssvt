@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { User, Mail, Phone, MapPin, Calendar, Shield, ArrowLeft } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Shield, ArrowLeft, Edit } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { apiClient } from '@/lib/api';
 import { User as UserType } from '@/types';
@@ -16,15 +16,9 @@ export default function MemberDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if we have a token in localStorage
-    const token = localStorage.getItem('token');
-    if (!token) {
+    // Check authentication state
+    if (!isAuthenticated) {
       router.push('/login');
-      return;
-    }
-    
-    // If we have a token but not authenticated yet, wait a bit
-    if (!isAuthenticated && token) {
       return;
     }
     
@@ -73,14 +67,8 @@ export default function MemberDetailPage() {
     }
   };
 
-  // Check if we have a token in localStorage
-  const token = localStorage.getItem('token');
-  if (!token) {
-    return null;
-  }
-
   // Show loading while authentication is being determined
-  if (!isAuthenticated && token) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="flex items-center justify-center py-12">
@@ -124,14 +112,25 @@ export default function MemberDetailPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-4">
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={() => router.back()}
-            className="text-gray-500 active:text-gray-700 p-1"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </button>
-          <h1 className="text-lg font-bold text-gray-900">Member Profile</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => router.back()}
+              className="text-gray-500 active:text-gray-700 p-1"
+            >
+              <ArrowLeft className="h-6 w-6" />
+            </button>
+            <h1 className="text-lg font-bold text-gray-900">Member Profile</h1>
+          </div>
+          {(user?.role === 'admin' || user?.role === 'manager') && (
+            <button
+              onClick={() => router.push(`/members/${member._id}/edit`)}
+              className="btn-primary btn-sm"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </button>
+          )}
         </div>
       </div>
 
@@ -249,6 +248,15 @@ export default function MemberDetailPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
           
           <div className="space-y-3">
+            {(user?.role === 'admin' || user?.role === 'manager') && (
+              <button 
+                onClick={() => router.push(`/members/${member._id}/edit`)}
+                className="w-full text-left px-4 py-3 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Member
+              </button>
+            )}
             <button className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
               Send Message
             </button>

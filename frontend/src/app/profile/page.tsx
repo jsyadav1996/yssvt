@@ -32,6 +32,7 @@ export default function ProfilePage() {
     address: '',
   });
 
+  console.log('ProfilePage');
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');

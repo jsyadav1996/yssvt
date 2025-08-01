@@ -1,16 +1,56 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useAuthStore } from '@/store/auth';
 import { usePathname } from 'next/navigation';
 import { SidebarDrawer } from './SidebarDrawer';
+import { apiClient } from '@/lib/api';
 
 interface AuthProviderProps {
   children: React.ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, login, setLoading } = useAuthStore();
   const pathname = usePathname();
+
+  // Initialize authentication state on app load
+  useEffect(() => {
+    const initializeAuth = async () => {
+      // Check if we're in a browser environment
+      if (typeof window === 'undefined') {
+        return;
+      }
+      
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      
+      if (token && userData && !isAuthenticated) {
+        try {
+          setLoading(true);
+          // Verify token is still valid by calling the API
+          const response = await apiClient.getCurrentUser();
+          if (response.success && response.data) {
+            login(response.data.user, token);
+          } else {
+            // Token is invalid, clear storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('auth-storage');
+          }
+        } catch (error) {
+          // Token is invalid, clear storage
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('auth-storage');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
+  }, [isAuthenticated, login, setLoading]);
 
   // Public pages that don't need the sidebar
   const publicPages = ['/', '/login', '/register', '/reset-password', '/verify-email'];
