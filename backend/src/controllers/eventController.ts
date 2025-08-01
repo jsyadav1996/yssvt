@@ -58,13 +58,13 @@ export const getEventById = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: { event }
     });
   } catch (error) {
     console.error('Get event error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error'
     });
@@ -121,14 +121,14 @@ export const updateEvent = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Event updated successfully',
       data: { event }
     });
   } catch (error) {
     console.error('Update event error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error'
     });
@@ -148,13 +148,13 @@ export const deleteEvent = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Event deleted successfully'
     });
   } catch (error) {
     console.error('Delete event error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error'
     });

@@ -48,7 +48,7 @@ export const getAllDonations = async (req: Request, res: Response) => {
 // @access  Private
 export const getUserDonations = async (req: AuthRequest, res: Response) => {
   try {
-    const donations = await Donation.find({ donor: req.user!._id })
+    const donations = await Donation.find({ donor: req.user!._id as string })
       .sort({ createdAt: -1 });
 
     res.json({
@@ -121,14 +121,14 @@ export const updateDonationStatus = async (req: Request, res: Response) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       message: 'Donation status updated successfully',
       data: { donation }
     });
   } catch (error) {
     console.error('Update donation status error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Server error'
     });

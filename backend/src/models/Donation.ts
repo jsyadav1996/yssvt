@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IDonation } from '../types';
 
-export interface IDonationDocument extends IDonation, Document {}
+export interface IDonationDocument extends Omit<IDonation, '_id'>, Document {}
 
 const donationSchema = new Schema<IDonationDocument>({
   donor: {

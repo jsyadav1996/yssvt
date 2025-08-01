@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
-import { AuthRequest } from '../types';
+import { AuthRequest, IUser } from '../types';
 
 export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -31,8 +31,9 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
       });
     }
 
-    req.user = user;
+    req.user = user.toObject() as IUser;
     next();
+    return;
   } catch (error) {
     return res.status(401).json({ 
       success: false, 
@@ -58,6 +59,7 @@ export const requireRole = (roles: string[]) => {
     }
 
     next();
+    return;
   };
 };
 

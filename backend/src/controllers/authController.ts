@@ -45,7 +45,7 @@ export const register = async (req: Request, res: Response) => {
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user._id as string);
 
     return res.status(201).json({
       success: true,
@@ -105,7 +105,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user._id as string);
 
     return res.json({
       success: true,

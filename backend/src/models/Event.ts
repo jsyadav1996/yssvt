@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { IEvent } from '../types';
 
-export interface IEventDocument extends IEvent, Document {}
+export interface IEventDocument extends Omit<IEvent, '_id'>, Document {}
 
 const eventSchema = new Schema<IEventDocument>({
   title: {
