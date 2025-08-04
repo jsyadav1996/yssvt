@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
-import { Donation } from '../models/Donation';
-import { AuthRequest } from '../types';
+import { prisma } from '../lib/prisma';
+
+// Extend Request to include user
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 // @desc    Get all donations (manager/admin only)
 // @access  Private
@@ -14,13 +18,23 @@ export const getAllDonations = async (req: Request, res: Response) => {
       filter.status = status;
     }
 
-    const donations = await Donation.find(filter)
-      .populate('donor', 'firstName lastName email')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit));
+    const donations = await prisma.donation.findMany({
+      where: filter,
+      include: {
+        donor: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: Number(limit)
+    });
 
-    const total = await Donation.countDocuments(filter);
+    const total = await prisma.donation.count({ where: filter });
 
     res.json({
       success: true,
@@ -48,8 +62,10 @@ export const getAllDonations = async (req: Request, res: Response) => {
 // @access  Private
 export const getUserDonations = async (req: AuthRequest, res: Response) => {
   try {
-    const donations = await Donation.find({ donor: req.user!._id as string })
-      .sort({ createdAt: -1 });
+    const donations = await prisma.donation.findMany({
+      where: { donorId: parseInt(req.user!.id) },
+      orderBy: { createdAt: 'desc' }
+    });
 
     res.json({
       success: true,
@@ -70,18 +86,26 @@ export const createDonation = async (req: AuthRequest, res: Response) => {
   try {
     const { amount, currency, purpose, anonymous, paymentMethod } = req.body;
 
-    const donation = new Donation({
-      donor: req.user!._id,
-      amount,
-      currency,
-      purpose,
-      anonymous,
-      paymentMethod,
-      status: 'pending'
+    const donation = await prisma.donation.create({
+      data: {
+        donorId: parseInt(req.user!.id),
+        amount,
+        currency,
+        purpose,
+        anonymous,
+        paymentMethod,
+        status: 'pending'
+      },
+      include: {
+        donor: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
     });
-
-    await donation.save();
-    await donation.populate('donor', 'firstName lastName email');
 
     res.status(201).json({
       success: true,
@@ -108,11 +132,19 @@ export const updateDonationStatus = async (req: Request, res: Response) => {
       updateFields.transactionId = transactionId;
     }
 
-    const donation = await Donation.findByIdAndUpdate(
-      req.params.id,
-      updateFields,
-      { new: true, runValidators: true }
-    ).populate('donor', 'firstName lastName email');
+    const donation = await prisma.donation.update({
+      where: { id: parseInt(req.params.id) },
+      data: updateFields,
+      include: {
+        donor: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
 
     if (!donation) {
       return res.status(404).json({

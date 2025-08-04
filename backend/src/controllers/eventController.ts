@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
-import { Event } from '../models/Event';
-import { AuthRequest } from '../types';
+import { prisma } from '../lib/prisma';
+
+// Extend Request to include user
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 // @desc    Get all events
 // @access  Public
@@ -14,13 +18,23 @@ export const getAllEvents = async (req: Request, res: Response) => {
       filter.isActive = active === 'true';
     }
 
-    const events = await Event.find(filter)
-      .populate('organizer', 'firstName lastName email')
-      .sort({ date: 1 })
-      .skip(skip)
-      .limit(Number(limit));
+    const events = await prisma.event.findMany({
+      where: filter,
+      include: {
+        organizer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      },
+      orderBy: { date: 'asc' },
+      skip,
+      take: Number(limit)
+    });
 
-    const total = await Event.countDocuments(filter);
+    const total = await prisma.event.count({ where: filter });
 
     res.json({
       success: true,
@@ -48,8 +62,18 @@ export const getAllEvents = async (req: Request, res: Response) => {
 // @access  Public
 export const getEventById = async (req: Request, res: Response) => {
   try {
-    const event = await Event.findById(req.params.id)
-      .populate('organizer', 'firstName lastName email');
+    const event = await prisma.event.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        organizer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
     
     if (!event) {
       return res.status(404).json({
@@ -77,18 +101,26 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
   try {
     const { title, description, date, location, maxParticipants, image } = req.body;
 
-    const event = new Event({
-      title,
-      description,
-      date: new Date(date),
-      location,
-      organizer: req.user!._id,
-      maxParticipants,
-      image
+    const event = await prisma.event.create({
+      data: {
+        title,
+        description,
+        date: new Date(date),
+        location,
+        organizerId: parseInt(req.user!.id),
+        maxParticipants,
+        image
+      },
+      include: {
+        organizer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
     });
-
-    await event.save();
-    await event.populate('organizer', 'firstName lastName email');
 
     res.status(201).json({
       success: true,
@@ -108,11 +140,19 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
 // @access  Private
 export const updateEvent = async (req: Request, res: Response) => {
   try {
-    const event = await Event.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    ).populate('organizer', 'firstName lastName email');
+    const event = await prisma.event.update({
+      where: { id: parseInt(req.params.id) },
+      data: req.body,
+      include: {
+        organizer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
 
     if (!event) {
       return res.status(404).json({
@@ -139,7 +179,9 @@ export const updateEvent = async (req: Request, res: Response) => {
 // @access  Private
 export const deleteEvent = async (req: Request, res: Response) => {
   try {
-    const event = await Event.findByIdAndDelete(req.params.id);
+    const event = await prisma.event.delete({
+      where: { id: parseInt(req.params.id) }
+    });
     
     if (!event) {
       return res.status(404).json({

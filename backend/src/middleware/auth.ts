@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
-import { AuthRequest, IUser } from '../types';
+import { prisma } from '../lib/prisma';
+
+// Extend Request to include user
+export interface AuthRequest extends Request {
+  user?: any; // Will be properly typed once Prisma client is generated
+}
 
 export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -15,7 +19,22 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
-    const user = await User.findById(decoded.userId).select('-password');
+    
+    // Use Prisma to find user, excluding password field
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        address: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
     
     if (!user) {
       return res.status(401).json({ 
@@ -24,14 +43,7 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
       });
     }
 
-    if (!user.isActive) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Account is deactivated.' 
-      });
-    }
-
-    req.user = user.toObject() as IUser;
+    req.user = user;
     next();
     return;
   } catch (error) {
@@ -51,7 +63,10 @@ export const requireRole = (roles: string[]) => {
       });
     }
 
-    if (!roles.includes(req.user.role)) {
+    // Handle nullable role by providing a default
+    const userRole = req.user.role || 'member';
+    
+    if (!roles.includes(userRole)) {
       return res.status(403).json({ 
         success: false, 
         message: 'Access denied. Insufficient permissions.' 
@@ -65,3 +80,4 @@ export const requireRole = (roles: string[]) => {
 
 export const requireAdmin = requireRole(['admin']);
 export const requireManager = requireRole(['admin', 'manager']); 
+export const requireMember = requireRole(['admin', 'manager', 'member']); 

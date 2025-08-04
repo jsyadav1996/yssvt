@@ -26,7 +26,7 @@ export default function ProfilePage () {
       {/* User Form Component */}
       <UserForm 
         mode="profile"
-        userId={user?._id}
+        user={user}
       />
     </div>
   )

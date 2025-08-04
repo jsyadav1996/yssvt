@@ -1,6 +1,18 @@
 import { Request, Response } from 'express';
-import { User } from '../models/User';
-import { AuthRequest, UserRole } from '../types';
+import { userService } from '../services/userService';
+import { prisma } from '../lib/prisma';
+
+// Define UserRole enum locally to match Prisma schema
+enum UserRole {
+  MEMBER = 'member',
+  MANAGER = 'manager',
+  ADMIN = 'admin'
+}
+
+// Extend Request to include user
+interface AuthRequest extends Request {
+  user?: any;
+}
 
 // @desc    Get all users with pagination and search (admin/manager only)
 // @access  Private
@@ -9,6 +21,24 @@ import { AuthRequest, UserRole } from '../types';
 // @query   search: string (optional) - Search in firstName, lastName, email, phone
 // @query   role: string (optional) - Filter by user role
 // @query   isActive: string (optional) - Filter by active status ('true' or 'false')
+
+// @desc    Get current user
+// @access  Private
+export const getCurrentUser = async (req: AuthRequest, res: Response) => {
+  try {
+    return res.status(200).json({
+      success: true,
+      data: req.user
+    });
+  } catch (error) {
+    console.error('Get current user error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+}; 
+
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
@@ -42,14 +72,26 @@ export const getAllUsers = async (req: Request, res: Response) => {
     }
 
     // Get total count for pagination
-    const totalUsers = await User.countDocuments(searchQuery);
+    const totalUsers = await prisma.user.count({ where: searchQuery });
     
     // Get users with pagination and search
-    const users = await User.find(searchQuery)
-      .select('-password')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    const users = await prisma.user.findMany({
+      where: searchQuery,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        address: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
 
     // Calculate pagination info
     const totalPages = Math.ceil(totalUsers / limit);
@@ -87,8 +129,22 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // @desc    Get user by ID
 // @access  Private
 export const getUserById = async (req: Request, res: Response) => {
+  console.log('getUserById', req.params.id)
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(req.params.id) },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        address: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
     
     if (!user) {
       return res.status(404).json({
@@ -122,16 +178,26 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
     if (phone) updateFields.phone = phone;
     if (address) updateFields.address = address;
 
-    const user = await User.findByIdAndUpdate(
-      (req.user as any)._id,
-      updateFields,
-      { new: true, runValidators: true }
-    ).select('-password');
+    const user = await prisma.user.update({
+      where: { id: parseInt(req.user?.id) },
+      data: updateFields,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        address: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
 
     res.json({
       success: true,
       message: 'Profile updated successfully',
-      data: { user }
+      data: user
     });
   } catch (error) {
     console.error('Update profile error:', error);
@@ -148,7 +214,7 @@ export const createUser = async (req: Request, res: Response) => {
   try {
     const { firstName, lastName, email, password, phone, address, role } = req.body;
     if (email) {
-      const existingUser = await User.findOne({ email });
+      const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) {
         return res.status(400).json({
           success: false,
@@ -157,24 +223,35 @@ export const createUser = async (req: Request, res: Response) => {
       }
     }
     // Create new user
-    const user = new User({
-      firstName,
-      lastName,
-      email,
-      password,
-      phone,
-      address,
-      role: role || UserRole.MEMBER
+    const user = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password,
+        phone,
+        address,
+        role: role || UserRole.MEMBER
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        address: true,
+        createdAt: true,
+        updatedAt: true
+      }
     });
-
-    await user.save();
 
     return res.status(201).json({
       success: true,
       message: 'User created successfully',
       data: {
         user: {
-          _id: user._id,
+          id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
@@ -208,14 +285,28 @@ export const searchUsers = async (req: Request, res: Response) => {
 
     const searchRegex = new RegExp(searchText.trim(), 'i'); // Case-insensitive search
     
-    const users = await User.find({
-      $or: [
-        { firstName: searchRegex },
-        { lastName: searchRegex },
-        { email: searchRegex },
-        { phone: searchRegex }
-      ]
-    }).select('-password').sort({ createdAt: -1 });
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { firstName: { contains: searchText.trim(), mode: 'insensitive' } },
+          { lastName: { contains: searchText.trim(), mode: 'insensitive' } },
+          { email: { contains: searchText.trim(), mode: 'insensitive' } },
+          { phone: { contains: searchText.trim(), mode: 'insensitive' } }
+        ]
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        address: true,
+        createdAt: true,
+        updatedAt: true
+      },
+      orderBy: { createdAt: 'desc' }
+    });
 
     return res.json({
       success: true,
@@ -239,10 +330,10 @@ export const searchUsers = async (req: Request, res: Response) => {
 export const updateUser = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, phone, address, role, isActive } = req.body;
+    const { firstName, lastName, email, phone, address, role } = req.body;
     
     // Check if user exists
-    const existingUser = await User.findById(id);
+    const existingUser = await prisma.user.findUnique({ where: { id: parseInt(id) } });
     if (!existingUser) {
       return res.status(404).json({
         success: false,
@@ -252,7 +343,12 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
 
     // Check if email is being updated and if it's already taken
     if (email && email !== existingUser.email) {
-      const emailExists = await User.findOne({ email, _id: { $ne: id } });
+      const emailExists = await prisma.user.findFirst({ 
+        where: { 
+          email, 
+          id: { not: parseInt(id) } 
+        } 
+      });
       if (emailExists) {
         return res.status(400).json({
           success: false,
@@ -265,29 +361,33 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
     const updateFields: any = {};
     if (firstName !== undefined) updateFields.firstName = firstName;
     if (lastName !== undefined) updateFields.lastName = lastName;
-    if (email !== '' && email !== undefined) {
-      updateFields.email = email;
-    } else {
-      // unset email
-      updateFields.$unset = { email: '' };
-    }
+    if (email !== undefined) updateFields.email = email;
     if (phone !== undefined) updateFields.phone = phone;
     if (address !== undefined) updateFields.address = address;
     if (role !== undefined) updateFields.role = role;
-    if (isActive !== undefined) updateFields.isActive = isActive;
 
     console.log('updateFields', updateFields)
     // Update user
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      updateFields,
-      { new: true, runValidators: true }
-    ).select('-password');
+    const updatedUser = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: updateFields,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        address: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
 
     return res.json({
       success: true,
       message: 'User updated successfully',
-      data: { user: updatedUser }
+      data: updatedUser
     });
   } catch (error) {
     console.error('Update user error:', error);
@@ -305,7 +405,7 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     
     // Check if user exists
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -314,7 +414,7 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     }
 
     // Prevent admin from deleting themselves
-    if (req.user && (req.user as any)._id.toString() === id) {
+    if (req.user && req.user.id.toString() === id) {
       return res.status(400).json({
         success: false,
         message: 'You cannot delete your own account'
@@ -322,7 +422,7 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     }
 
     // Delete user
-    await User.findByIdAndDelete(id);
+    await prisma.user.delete({ where: { id: parseInt(id) } });
 
     return res.json({
       success: true,

@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  member
+  manager
+  admin
+}
+
+enum PaymentMethod {
+  credit_card
+  debit_card
+  bank_transfer
+  paypal
+  cash
+}
+
+enum Currency {
+  USD
+  EUR
+  GBP
+  INR
+}
+
+enum DonationStatus {
+  pending
+  completed
+  failed
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  firstName     String   @db.VarChar(50)
+  lastName      String   @db.VarChar(50)
+  email         String?  @unique @db.VarChar(255)
+  password      String?  @db.VarChar(255)
+  role          UserRole? @default(member)
+  phone         String?  @db.VarChar(20)
+  address       String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime? @updatedAt
+
+  // Relations
+  events    Event[]
+  donations Donation[]
+
+  @@map("users")
+}
+
+model Event {
+  id                 Int      @id @default(autoincrement())
+  title              String   @db.VarChar(100)
+  description        String   @db.Text
+  date               DateTime
+  location           String   @db.VarChar(255)
+  organizerId        Int
+  maxParticipants    Int?
+  currentParticipants Int     @default(0)
+  image              String?  @db.VarChar(255)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  organizer User @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+
+  @@map("events")
+}
+
+model Donation {
+  id            Int            @id @default(autoincrement())
+  donorId       Int
+  amount        Decimal        @db.Decimal(10, 2)
+  currency      Currency       @default(USD)
+  purpose       String?        @db.Text
+  anonymous     Boolean        @default(false)
+  paymentMethod PaymentMethod
+  status        DonationStatus @default(pending)
+  transactionId String?        @unique @db.VarChar(255)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  donor User @relation(fields: [donorId], references: [id], onDelete: Cascade)
+
+  @@map("donations")
+}

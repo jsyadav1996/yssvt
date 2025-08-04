@@ -27,7 +27,7 @@ interface PaginatedUsersResponse {
 
 // User interfaces
 interface User {
-  _id: string
+  id: string
   firstName: string
   lastName: string
   email: string
@@ -128,8 +128,8 @@ class ApiClient {
   }
 
   // Auth endpoints
-  async getCurrentUser(): Promise<ApiResponse<{ user: User }>> {
-    return this.request('/auth/me')
+  async getCurrentUser(): Promise<ApiResponse<User>> {
+    return this.request('/users/me')
   }
 
   async login(email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
@@ -185,7 +185,7 @@ class ApiClient {
     })
   }
 
-  async updateUser(id: string, data: Partial<User>): Promise<ApiResponse<{ user: User }>> {
+  async updateUser(id: bigint, data: Partial<User>): Promise<ApiResponse<{ user: User }>> {
     return this.request(`/users/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data)

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
-import { register, login, getCurrentUser } from '../controllers/authController';
+import { register, login } from '../controllers/authController';
 
 const router = Router();
 
@@ -38,10 +38,5 @@ router.post('/login', [
   body('password').notEmpty().withMessage('Password is required'),
   handleValidationErrors
 ], login);
-
-// @route   GET /api/auth/me
-// @desc    Get current user
-// @access  Private
-router.get('/me', getCurrentUser);
 
 export default router; 

@@ -58,7 +58,7 @@ export default function MemberDetailPage() {
     })
   }
 
-  const canEdit = currentUser?.role === 'admin' || currentUser?.role === 'manager' || currentUser?._id === id
+  const canEdit = currentUser?.role === 'admin' || currentUser?.role === 'manager' || currentUser?.id === id
 
   if (loading) {
     return (
@@ -224,7 +224,7 @@ export default function MemberDetailPage() {
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-gray-600">Member ID</p>
-                <p className="text-gray-900 font-mono text-sm">{member._id}</p>
+                <p className="text-gray-900 font-mono text-sm">{member.id}</p>
               </div>
               
               <div>

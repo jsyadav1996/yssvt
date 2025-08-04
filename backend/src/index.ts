@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
+import { prisma } from './lib/prisma';
 
 import { authRoutes, userRoutes, eventRoutes, donationRoutes } from './routes';
 import { errorHandler, authMiddleware } from './middleware';
@@ -55,26 +55,32 @@ app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Connect to MongoDB
-const connectDB = async () => {
+// Test database connection
+const testDBConnection = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/yssvt_community';
-    await mongoose.connect(mongoURI);
-    console.log('MongoDB connected successfully');
+    await prisma.$connect();
+    console.log('PostgreSQL connected successfully via Prisma');
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('PostgreSQL connection error:', error);
     process.exit(1);
   }
 };
 
 // Start server
 const startServer = async () => {
-  await connectDB();
+  await testDBConnection();
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV}`);
   });
 };
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down gracefully...');
+  await prisma.$disconnect();
+  process.exit(0);
+});
 
 startServer().catch(console.error);
 

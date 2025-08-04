@@ -1,9 +1,12 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import UserForm from '@/components/UserForm'
+import { apiClient, User } from '@/lib/api'
 
 const MemberEditPage: React.FC = () => {
+  const [error, setError] = useState<string | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
 
@@ -15,6 +18,29 @@ const MemberEditPage: React.FC = () => {
   const handleCancel = () => {
     navigate(`/members/${id}`)
   }
+
+  useEffect(() => {
+    const fetchUserData = async () => {  
+      if (!id) {
+        navigate('/members')
+        return
+      }
+      setError(null)
+      const response = await apiClient.getUserById(id)
+      try {
+        if (response.success && response.data) {
+          setUser(response.data)
+        } else {
+          setError(response.message || 'Failed to load user data')
+        }
+      } catch (err) {
+        setError('Network error occurred')
+      } finally {
+      }
+    }
+
+    fetchUserData()
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -32,10 +58,16 @@ const MemberEditPage: React.FC = () => {
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-600">{error}</p>
+        </div>
+      )}
+
       {/* User Form Component */}
       <UserForm 
         mode="edit"
-        userId={id}
+        user={user}
         onSuccess={handleSuccess}
         onCancel={handleCancel}
       />

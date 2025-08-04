@@ -1,7 +1,15 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
-import { getAllUsers, getUserById, updateProfile, createUser, searchUsers, updateUser, deleteUser } from '../controllers/userController';
-import { requireManager } from '../middleware/auth';
+import { getAllUsers,
+    getUserById,
+    updateProfile,
+    createUser,
+    searchUsers,
+    updateUser, 
+    deleteUser,
+    getCurrentUser
+  } from '../controllers/userController';
+import { requireManager, requireMember } from '../middleware/auth';
 
 const router = Router();
 
@@ -29,12 +37,18 @@ const validateUserPayload = [
 // @route   GET /api/users
 // @desc    Get all users (admin/manager only)
 // @access  Private
-router.get('/', requireManager, getAllUsers);
+router.get('/', requireMember, getAllUsers);
+
+// @route   GET /api/users/me
+// @desc    Get current user
+// @access  Private
+router.get('/me', getCurrentUser);
 
 // @route   GET /api/users/:id
 // @desc    Get user by ID
 // @access  Private
 router.get('/:id', getUserById);
+
 
 // @route   PUT /api/users/profile
 // @desc    Update user profile

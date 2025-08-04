@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { apiClient, User } from '@/lib/api'
 import { Save, User as UserIcon, Mail, Phone, MapPin, Shield } from 'lucide-react'
 
@@ -14,7 +14,7 @@ interface UserFormData {
 
 interface UserFormProps {
   mode: 'profile' | 'add' | 'edit'
-  userId?: string
+  user?: User | null
   onSuccess?: (user: User) => void
   onCancel?: () => void
   showBackButton?: boolean
@@ -22,7 +22,7 @@ interface UserFormProps {
 
 const UserForm: React.FC<UserFormProps> = ({ 
   mode, 
-  userId, 
+  user, 
   onSuccess, 
   onCancel
 }) => {
@@ -31,6 +31,8 @@ const UserForm: React.FC<UserFormProps> = ({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const location = useLocation()
+  console.log('location', location)
   
   const [formData, setFormData] = useState<UserFormData>({
     firstName: '',
@@ -69,42 +71,22 @@ const UserForm: React.FC<UserFormProps> = ({
 
   // Load user data
   useEffect(() => {
-    const loadUserData = async () => {
-      if (mode === 'add') return // No data to load for new user
-      
-      if (!userId) {
-        setError('User ID not found')
+    const loadUserData = async () => {      
+      if (user) {
+        setFormData({
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          email: user.email || '',
+          phone: user.phone || '',
+          address: user.address || '',
+          role: user.role || ''
+        })
         return
-      }
-
-      try {
-        setLoading(true)
-        setError(null)
-        
-        const response = await apiClient.getUserById(userId)
-        
-        if (response.success && response.data) {
-          const user = response.data
-          setFormData({
-            firstName: user.firstName || '',
-            lastName: user.lastName || '',
-            email: user.email || '',
-            phone: user.phone || '',
-            address: user.address || '',
-            role: user.role || ''
-          })
-        } else {
-          setError(response.message || 'Failed to load user data')
-        }
-      } catch (err) {
-        setError('Network error occurred')
-      } finally {
-        setLoading(false)
       }
     }
 
     loadUserData()
-  }, [userId, mode])
+  }, [user])
 
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -141,9 +123,14 @@ const UserForm: React.FC<UserFormProps> = ({
           address: formData.address || undefined,
           role: (formData.role as any) || 'member'
         })
-      } else if (mode === 'edit' && userId) {
+      } else if (mode === 'edit') {
+        console.log('formData', formData)
+        if (!user?.id) {
+          setError('User ID not found')
+          return
+        }
         // Update existing user
-        response = await apiClient.updateUser(userId, {
+        response = await apiClient.updateUser(BigInt(user.id), {
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,

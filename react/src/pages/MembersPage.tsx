@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { apiClient, User, PaginationInfo } from '@/lib/api'
-import { Search, Plus, Users, MapPin, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, Plus, Users, MapPin, ChevronLeft, ChevronRight, Edit } from 'lucide-react'
 
 export default function MembersPage() {
   const navigate = useNavigate()
@@ -206,11 +206,25 @@ export default function MembersPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {members.map((member) => (
               <div
-                key={member._id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => navigate(`/members/${member._id}`)}
+                key={member.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow relative group"
               >
-                <div className="flex items-center space-x-4 mb-4">
+                {/* Edit Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigate(`/members/${member.id}/edit`)
+                  }}
+                  className="absolute top-4 right-4 p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                  title="Edit member"
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+
+                <div 
+                  className="flex items-center space-x-4 mb-4 cursor-pointer"
+                  onClick={() => navigate(`/members/${member.id}`)}
+                >
                   <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
                     <span className="text-primary-600 font-semibold">
                       {member.firstName.charAt(0)}{member.lastName.charAt(0)}
