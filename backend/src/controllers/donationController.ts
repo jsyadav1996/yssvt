@@ -84,13 +84,12 @@ export const getUserDonations = async (req: AuthRequest, res: Response) => {
 // @access  Private
 export const createDonation = async (req: AuthRequest, res: Response) => {
   try {
-    const { amount, currency, purpose, anonymous, paymentMethod } = req.body;
+    const { amount, purpose, anonymous, paymentMethod } = req.body;
 
     const donation = await prisma.donation.create({
       data: {
         donorId: parseInt(req.user!.id),
         amount,
-        currency,
         purpose,
         anonymous,
         paymentMethod,

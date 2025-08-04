@@ -65,19 +65,16 @@ export default function DonationsPage() {
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
-      case 'credit_card': return '💳'
-      case 'debit_card': return '💳'
-      case 'bank_transfer': return '🏦'
-      case 'paypal': return '📱'
+      case 'online': return '💳'
       case 'cash': return '💵'
       default: return '💰'
     }
   }
 
-  const formatCurrency = (amount: number, currency: string) => {
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency
+      currency: 'USD'
     }).format(amount)
   }
 
@@ -181,7 +178,7 @@ export default function DonationsPage() {
             <div>
               <p className="text-sm font-medium text-gray-600">Total Amount</p>
               <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(calculateTotalAmount(donations), 'USD')}
+                {formatCurrency(calculateTotalAmount(donations))}
               </p>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -277,7 +274,7 @@ export default function DonationsPage() {
                   <span className="text-2xl">{getPaymentMethodIcon(donation.paymentMethod)}</span>
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      {formatCurrency(donation.amount, donation.currency)}
+                      {formatCurrency(donation.amount)}
                     </h3>
                     <p className="text-sm text-gray-600 capitalize">
                       {donation.paymentMethod.replace('_', ' ')}

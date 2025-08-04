@@ -5,7 +5,7 @@ export interface CreateEventData {
   description: string
   date: Date
   location: string
-  organizerId: string
+  organizerId: number
   maxParticipants?: number
   image?: string
 }
@@ -23,7 +23,7 @@ export interface UpdateEventData {
 
 export interface EventFilters {
   search?: string
-  organizerId?: string
+  organizerId?: number
   isActive?: boolean
   page?: number
   limit?: number
@@ -47,7 +47,7 @@ export class EventService {
     })
   }
 
-  async findEventById(id: string) {
+  async findEventById(id: number) {
     return prisma.event.findUnique({
       where: { id },
       include: {
@@ -64,7 +64,7 @@ export class EventService {
     })
   }
 
-  async updateEvent(id: string, data: UpdateEventData) {
+  async updateEvent(id: number, data: UpdateEventData) {
     return prisma.event.update({
       where: { id },
       data,
@@ -82,7 +82,7 @@ export class EventService {
     })
   }
 
-  async deleteEvent(id: string): Promise<void> {
+  async deleteEvent(id: number): Promise<void> {
     await prisma.event.delete({
       where: { id }
     })

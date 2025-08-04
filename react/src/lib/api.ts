@@ -72,10 +72,9 @@ interface CreateEventData {
 interface Donation {
   id: string
   amount: number
-  currency: 'USD' | 'EUR' | 'GBP' | 'INR'
   purpose?: string
   anonymous: boolean
-  paymentMethod: 'credit_card' | 'debit_card' | 'bank_transfer' | 'paypal' | 'cash'
+  paymentMethod: 'online' | 'cash'
   status: 'pending' | 'completed' | 'failed'
   transactionId?: string
   userId: string
@@ -85,10 +84,9 @@ interface Donation {
 
 interface CreateDonationData {
   amount: number
-  currency: 'USD' | 'EUR' | 'GBP' | 'INR'
   purpose?: string
   anonymous: boolean
-  paymentMethod: 'credit_card' | 'debit_card' | 'bank_transfer' | 'paypal' | 'cash'
+  paymentMethod: 'online' | 'cash'
 }
 
 class ApiClient {

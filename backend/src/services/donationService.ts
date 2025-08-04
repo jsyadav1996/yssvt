@@ -2,29 +2,26 @@ import { prisma } from '../lib/prisma'
 import { Decimal } from '@prisma/client/runtime/library'
 
 export interface CreateDonationData {
-  donorId: string
+  donorId: number
   amount: number
-  currency: 'USD' | 'EUR' | 'GBP' | 'INR'
   purpose?: string
   anonymous: boolean
-  paymentMethod: 'credit_card' | 'debit_card' | 'bank_transfer' | 'paypal' | 'cash'
+  paymentMethod: 'online' | 'cash'
   transactionId?: string
 }
 
 export interface UpdateDonationData {
   amount?: number
-  currency?: 'USD' | 'EUR' | 'GBP' | 'INR'
   purpose?: string
   anonymous?: boolean
-  paymentMethod?: 'credit_card' | 'debit_card' | 'bank_transfer' | 'paypal' | 'cash'
+  paymentMethod?: 'online' | 'cash'
   status?: 'pending' | 'completed' | 'failed'
   transactionId?: string
 }
 
 export interface DonationFilters {
-  donorId?: string
+  donorId?: number
   status?: 'pending' | 'completed' | 'failed'
-  currency?: 'USD' | 'EUR' | 'GBP' | 'INR'
   page?: number
   limit?: number
 }
@@ -50,7 +47,7 @@ export class DonationService {
     })
   }
 
-  async findDonationById(id: string) {
+  async findDonationById(id: number) {
     return prisma.donation.findUnique({
       where: { id },
       include: {
@@ -67,7 +64,7 @@ export class DonationService {
     })
   }
 
-  async updateDonation(id: string, data: UpdateDonationData) {
+  async updateDonation(id: number, data: UpdateDonationData) {
     const updateData: any = { ...data }
     if (data.amount !== undefined) {
       updateData.amount = new Decimal(data.amount)
@@ -90,14 +87,14 @@ export class DonationService {
     })
   }
 
-  async deleteDonation(id: string): Promise<void> {
+  async deleteDonation(id: number): Promise<void> {
     await prisma.donation.delete({
       where: { id }
     })
   }
 
   async getDonations(filters: DonationFilters = {}) {
-    const { donorId, status, currency, page = 1, limit = 10 } = filters
+    const { donorId, status, page = 1, limit = 10 } = filters
     const skip = (page - 1) * limit
 
     const where: any = {}
@@ -110,9 +107,7 @@ export class DonationService {
       where.status = status
     }
     
-    if (currency) {
-      where.currency = currency
-    }
+
 
     const [donations, total] = await Promise.all([
       prisma.donation.findMany({
@@ -152,7 +147,7 @@ export class DonationService {
     }
   }
 
-  async getUserDonations(userId: string) {
+  async getUserDonations(userId: number) {
     return prisma.donation.findMany({
       where: { donorId: userId },
       orderBy: { createdAt: 'desc' },
@@ -170,7 +165,7 @@ export class DonationService {
     })
   }
 
-  async updateDonationStatus(id: string, status: 'pending' | 'completed' | 'failed', transactionId?: string) {
+  async updateDonationStatus(id: number, status: 'pending' | 'completed' | 'failed', transactionId?: string) {
     return prisma.donation.update({
       where: { id },
       data: { status, transactionId },

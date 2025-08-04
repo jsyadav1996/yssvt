@@ -33,10 +33,10 @@ router.get('/my', getUserDonations);
 // @access  Private
 router.post('/', [
   body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
-  body('currency').isIn(['USD', 'EUR', 'GBP', 'INR']).withMessage('Invalid currency'),
+
   body('purpose').optional().trim().isLength({ max: 200 }),
   body('anonymous').isBoolean().withMessage('Anonymous must be a boolean'),
-  body('paymentMethod').isIn(['credit_card', 'debit_card', 'bank_transfer', 'paypal', 'cash']).withMessage('Invalid payment method'),
+  body('paymentMethod').isIn(['online', 'cash']).withMessage('Invalid payment method'),
   handleValidationErrors
 ], createDonation);
 

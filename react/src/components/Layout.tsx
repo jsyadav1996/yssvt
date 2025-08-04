@@ -31,7 +31,7 @@ export function Layout({ children }: Page) {
           // Verify token is still valid by calling the API
           const response = await apiClient.getCurrentUser();
           if (response.success && response.data) {
-            login(response.data.user, token);
+            login(response.data, token);
           } else {
             // Token is invalid, clear storage
             localStorage.removeItem('token');

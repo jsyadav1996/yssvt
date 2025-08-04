@@ -1,6 +1,21 @@
 import { prisma } from '../lib/prisma'
 import bcrypt from 'bcryptjs'
-import { User, UserRole } from '@prisma/client'
+
+// Define types locally
+type UserRole = 'member' | 'manager' | 'admin'
+
+type User = {
+  id: number
+  firstName: string
+  lastName: string
+  email: string | null
+  password: string | null
+  role: UserRole | null
+  phone: string | null
+  address: string | null
+  createdAt: Date
+  updatedAt: Date | null
+}
 
 export interface CreateUserData {
   firstName: string
@@ -10,7 +25,6 @@ export interface CreateUserData {
   role?: UserRole
   phone?: string
   address?: string
-  profileImage?: string
 }
 
 export interface UpdateUserData {
@@ -19,15 +33,11 @@ export interface UpdateUserData {
   email?: string
   phone?: string
   address?: string
-  profileImage?: string
-  isActive?: boolean
-  emailVerified?: boolean
 }
 
 export interface UserFilters {
   search?: string
   role?: UserRole
-  isActive?: boolean
   page?: number
   limit?: number
 }
@@ -57,7 +67,7 @@ export class UserService {
     return user
   }
 
-  async findUserById(id: string): Promise<Omit<User, 'password'> | null> {
+  async findUserById(id: number): Promise<Omit<User, 'password'> | null> {
     return prisma.user.findUnique({
       where: { id },
       select: {
@@ -68,9 +78,6 @@ export class UserService {
         role: true,
         phone: true,
         address: true,
-        profileImage: true,
-        isActive: true,
-        emailVerified: true,
         createdAt: true,
         updatedAt: true
       }
@@ -83,7 +90,7 @@ export class UserService {
     })
   }
 
-  async updateUser(id: string, data: UpdateUserData): Promise<Omit<User, 'password'>> {
+  async updateUser(id: number, data: UpdateUserData): Promise<Omit<User, 'password'>> {
     const user = await prisma.user.update({
       where: { id },
       data,
@@ -95,9 +102,6 @@ export class UserService {
         role: true,
         phone: true,
         address: true,
-        profileImage: true,
-        isActive: true,
-        emailVerified: true,
         createdAt: true,
         updatedAt: true
       }
@@ -106,14 +110,14 @@ export class UserService {
     return user
   }
 
-  async deleteUser(id: string): Promise<void> {
+  async deleteUser(id: number): Promise<void> {
     await prisma.user.delete({
       where: { id }
     })
   }
 
   async getUsers(filters: UserFilters = {}) {
-    const { search, role, isActive, page = 1, limit = 10 } = filters
+    const { search, role, page = 1, limit = 10 } = filters
     const skip = (page - 1) * limit
 
     const where: any = {}
@@ -128,10 +132,6 @@ export class UserService {
     
     if (role) {
       where.role = role
-    }
-    
-    if (isActive !== undefined) {
-      where.isActive = isActive
     }
 
     const [users, total] = await Promise.all([
@@ -148,9 +148,6 @@ export class UserService {
           role: true,
           phone: true,
           address: true,
-          profileImage: true,
-          isActive: true,
-          emailVerified: true,
           createdAt: true,
           updatedAt: true
         }
@@ -174,19 +171,18 @@ export class UserService {
       },
       filters: {
         search: search || '',
-        role: role || '',
-        isActive: isActive?.toString() || ''
+        role: role || ''
       }
     }
   }
 
-  async comparePassword(userId: string, candidatePassword: string): Promise<boolean> {
+  async comparePassword(userId: number, candidatePassword: string): Promise<boolean> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { password: true }
     })
     
-    if (!user) return false
+    if (!user || !user.password) return false
     
     return bcrypt.compare(candidatePassword, user.password)
   }

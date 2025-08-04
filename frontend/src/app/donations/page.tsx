@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Heart, Plus, DollarSign, CreditCard, Building2, CreditCard as Paypal } from 'lucide-react';
+import { Heart, Plus, DollarSign, CreditCard } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
 import { apiClient } from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -10,7 +10,6 @@ import toast from 'react-hot-toast';
 interface Donation {
   _id: string;
   amount: number;
-  currency: string;
   purpose?: string;
   anonymous: boolean;
   paymentMethod: string;
@@ -29,7 +28,7 @@ export default function DonationsPage() {
     currency: 'USD',
     purpose: '',
     anonymous: false,
-    paymentMethod: 'credit_card',
+                paymentMethod: 'online',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -79,7 +78,7 @@ export default function DonationsPage() {
           currency: 'USD',
           purpose: '',
           anonymous: false,
-          paymentMethod: 'credit_card',
+          paymentMethod: 'online',
         });
         fetchDonations();
       } else {
@@ -107,13 +106,10 @@ export default function DonationsPage() {
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
-      case 'credit_card':
-      case 'debit_card':
+      case 'online':
         return <CreditCard className="h-4 w-4" />;
-      case 'bank_transfer':
-        return <Building2 className="h-4 w-4" />;
-      case 'paypal':
-        return <Paypal className="h-4 w-4" />;
+      case 'cash':
+        return <DollarSign className="h-4 w-4" />;
       default:
         return <DollarSign className="h-4 w-4" />;
     }
@@ -179,7 +175,7 @@ export default function DonationsPage() {
                       <div className="flex items-center space-x-2">
                         {getPaymentMethodIcon(donation.paymentMethod)}
                         <span className="font-semibold text-gray-900">
-                          ${donation.amount} {donation.currency}
+                          ${donation.amount}
                         </span>
                       </div>
                       <span className={`badge ${getStatusColor(donation.status)}`}>
@@ -284,17 +280,14 @@ export default function DonationsPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Payment Method
                 </label>
-                <select
-                  value={formData.paymentMethod}
-                  onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                  className="input"
-                >
-                  <option value="credit_card">Credit Card</option>
-                  <option value="debit_card">Debit Card</option>
-                  <option value="bank_transfer">Bank Transfer</option>
-                  <option value="paypal">PayPal</option>
-                  <option value="cash">Cash</option>
-                </select>
+                                  <select
+                    value={formData.paymentMethod}
+                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                    className="input"
+                  >
+                    <option value="online">Online Payment</option>
+                    <option value="cash">Cash</option>
+                  </select>
               </div>
 
               {/* Anonymous */}

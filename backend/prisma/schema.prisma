@@ -17,18 +17,8 @@ enum UserRole {
 }
 
 enum PaymentMethod {
-  credit_card
-  debit_card
-  bank_transfer
-  paypal
+  online
   cash
-}
-
-enum Currency {
-  USD
-  EUR
-  GBP
-  INR
 }
 
 enum DonationStatus {
@@ -80,7 +70,6 @@ model Donation {
   id            Int            @id @default(autoincrement())
   donorId       Int
   amount        Decimal        @db.Decimal(10, 2)
-  currency      Currency       @default(USD)
   purpose       String?        @db.Text
   anonymous     Boolean        @default(false)
   paymentMethod PaymentMethod

@@ -27,7 +27,6 @@ const UserForm: React.FC<UserFormProps> = ({
   onCancel
 }) => {
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -161,8 +160,6 @@ const UserForm: React.FC<UserFormProps> = ({
           setTimeout(() => {
             if (mode === 'add') {
               navigate('/members')
-            } else if (mode === 'edit') {
-              navigate(`/members/${userId}`)
             }
           }, 1500)
         }
@@ -182,21 +179,6 @@ const UserForm: React.FC<UserFormProps> = ({
     } else {
       navigate(-1)
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          <div className="h-10 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    )
   }
 
   return (
