@@ -22,13 +22,19 @@ export default function EventsPage() {
         const response = await apiClient.getAllEvents()
         
         if (response.success && response.data) {
-          setEvents(response.data)
-          setFilteredEvents(response.data)
+          // Ensure response.data is an array
+          const eventsArray = Array.isArray(response.data) ? response.data : []
+          setEvents(eventsArray)
+          setFilteredEvents(eventsArray)
         } else {
           setError(response.message || 'Failed to fetch events')
+          setEvents([])
+          setFilteredEvents([])
         }
       } catch (err) {
         setError('Network error occurred')
+        setEvents([])
+        setFilteredEvents([])
       } finally {
         setLoading(false)
       }
@@ -39,12 +45,32 @@ export default function EventsPage() {
 
   // Filter events
   useEffect(() => {
+    if (!events) {
+      setFilteredEvents([])
+      return
+    }
+    
     if (filter === 'all') {
       setFilteredEvents(events)
     } else {
       setFilteredEvents(events.filter(event => event.status === filter))
     }
   }, [filter, events])
+
+  // Check if user can create events
+  const canCreateEvents = currentUser?.role === 'admin' || currentUser?.role === 'manager'
+
+  // Check if there are any events
+  const hasEvents = events && events.length > 0
+  const hasFilteredEvents = filteredEvents && filteredEvents.length > 0
+
+  // Get event counts for stats
+  const eventCounts = {
+    total: events?.length || 0,
+    upcoming: events?.filter(e => e.status === 'upcoming').length || 0,
+    ongoing: events?.filter(e => e.status === 'ongoing').length || 0,
+    completed: events?.filter(e => e.status === 'completed').length || 0
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -128,9 +154,11 @@ export default function EventsPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Events</h1>
-          <p className="text-gray-600">Manage community events</p>
+          <p className="text-gray-600">
+            {hasEvents ? `Manage ${eventCounts.total} community events` : 'Manage community events'}
+          </p>
         </div>
-        {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+        {canCreateEvents && (
           <button
             onClick={() => navigate('/events/new')}
             className="btn-primary flex items-center space-x-2"
@@ -141,171 +169,194 @@ export default function EventsPage() {
         )}
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Events</p>
-              <p className="text-2xl font-bold text-gray-900">{events.length}</p>
+      {/* Stats - Only show if there are events */}
+      {hasEvents && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Events</p>
+                <p className="text-2xl font-bold text-gray-900">{eventCounts.total}</p>
+              </div>
+              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-primary-600" />
+              </div>
             </div>
-            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-primary-600" />
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Upcoming</p>
+                <p className="text-2xl font-bold text-gray-900">{eventCounts.upcoming}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Ongoing</p>
+                <p className="text-2xl font-bold text-gray-900">{eventCounts.ongoing}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Completed</p>
+                <p className="text-2xl font-bold text-gray-900">{eventCounts.completed}</p>
+              </div>
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-gray-600" />
+              </div>
             </div>
           </div>
         </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Upcoming</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {events.filter(e => e.status === 'upcoming').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Ongoing</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {events.filter(e => e.status === 'ongoing').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {events.filter(e => e.status === 'completed').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-gray-600" />
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
 
-      {/* Filters */}
-      <div className="flex space-x-2">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'all'
-              ? 'bg-primary-100 text-primary-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          All Events
-        </button>
-        <button
-          onClick={() => setFilter('upcoming')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'upcoming'
-              ? 'bg-blue-100 text-blue-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Upcoming
-        </button>
-        <button
-          onClick={() => setFilter('ongoing')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'ongoing'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Ongoing
-        </button>
-        <button
-          onClick={() => setFilter('completed')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'completed'
-              ? 'bg-gray-100 text-gray-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Completed
-        </button>
-      </div>
+      {/* Filters - Only show if there are events */}
+      {hasEvents && (
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'all'
+                ? 'bg-primary-100 text-primary-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            All Events ({eventCounts.total})
+          </button>
+          <button
+            onClick={() => setFilter('upcoming')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'upcoming'
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Upcoming ({eventCounts.upcoming})
+          </button>
+          <button
+            onClick={() => setFilter('ongoing')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'ongoing'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Ongoing ({eventCounts.ongoing})
+          </button>
+          <button
+            onClick={() => setFilter('completed')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'completed'
+                ? 'bg-gray-100 text-gray-700'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Completed ({eventCounts.completed})
+          </button>
+        </div>
+      )}
 
       {/* Events List */}
-      {filteredEvents.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => (
-            <div
-              key={event.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate(`/events/${event.id}`)}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <h3 className="font-semibold text-gray-900 text-lg">{event.title}</h3>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
-                  {event.status}
-                </span>
-              </div>
-              
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
-              
-              <div className="space-y-3">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  <span>{formatDate(event.date)}</span>
+      {hasEvents ? (
+        hasFilteredEvents ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEvents.map((event) => (
+              <div
+                key={event.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate(`/events/${event.id}`)}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900 text-lg">{event.title}</h3>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
+                    {event.status}
+                  </span>
                 </div>
                 
-                <div className="flex items-center text-sm text-gray-600">
-                  <Clock className="h-4 w-4 mr-2" />
-                  <span>{formatTime(event.date)}</span>
-                </div>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
                 
-                <div className="flex items-center text-sm text-gray-600">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  <span className="truncate">{event.location}</span>
-                </div>
-                
-                <div className="flex items-center justify-between">
+                <div className="space-y-3">
                   <div className="flex items-center text-sm text-gray-600">
-                    <Users className="h-4 w-4 mr-2" />
-                    <span>
-                      {event.currentParticipants}
-                      {event.maxParticipants && ` / ${event.maxParticipants}`}
-                    </span>
+                    <Calendar className="h-4 w-4 mr-2" />
+                    <span>{formatDate(event.date)}</span>
                   </div>
                   
-                  {isEventFull(event) && (
-                    <span className="text-xs text-red-600 font-medium">Full</span>
-                  )}
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Clock className="h-4 w-4 mr-2" />
+                    <span>{formatTime(event.date)}</span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-600">
+                    <MapPin className="h-4 w-4 mr-2" />
+                    <span className="truncate">{event.location}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Users className="h-4 w-4 mr-2" />
+                      <span>
+                        {event.currentParticipants}
+                        {event.maxParticipants && ` / ${event.maxParticipants}`}
+                      </span>
+                    </div>
+                    
+                    {isEventFull(event) && (
+                      <span className="text-xs text-red-600 font-medium">Full</span>
+                    )}
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No {filter} events found
+            </h3>
+            <p className="text-gray-600 mb-6">
+              There are no events currently {filter}. Try changing the filter or create a new event.
+            </p>
+            <div className="flex justify-center space-x-3">
+              <button
+                onClick={() => setFilter('all')}
+                className="btn-secondary"
+              >
+                Show All Events
+              </button>
+              {canCreateEvents && (
+                <button
+                  onClick={() => navigate('/events/new')}
+                  className="btn-primary"
+                >
+                  Create Event
+                </button>
+              )}
             </div>
-          ))}
-        </div>
+          </div>
+        )
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {filter === 'all' ? 'No events yet' : `No ${filter} events`}
+            No events yet
           </h3>
           <p className="text-gray-600 mb-6">
-            {filter === 'all' 
-              ? 'Get started by creating your first community event'
-              : `No events are currently ${filter}`
-            }
+            Get started by creating your first community event
           </p>
-          {filter === 'all' && (currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+          {canCreateEvents && (
             <button
               onClick={() => navigate('/events/new')}
               className="btn-primary"
