@@ -36,6 +36,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Static file serving for uploaded images
+app.use('/uploads', express.static('uploads'));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -44,8 +47,8 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', authMiddleware, userRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/donations', donationRoutes);
+app.use('/api/events', authMiddleware, eventRoutes);
+app.use('/api/donations', authMiddleware, donationRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

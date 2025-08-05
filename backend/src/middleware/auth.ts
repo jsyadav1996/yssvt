@@ -17,7 +17,7 @@ export const authMiddleware = async (req: AuthRequest, res: Response, next: Next
         message: 'Access denied. No token provided.' 
       });
     }
-
+    console.log('token', token)
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
     
     // Use Prisma to find user, excluding password field

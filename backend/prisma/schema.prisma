@@ -47,7 +47,6 @@ model User {
   updatedAt     DateTime? @updatedAt
 
   // Relations
-  events    Event[]
   donations Donation[]
 
   @@map("users")
@@ -59,16 +58,10 @@ model Event {
   description        String   @db.Text
   date               DateTime
   location           String   @db.VarChar(255)
-  organizerId        Int
-  maxParticipants    Int?
-  currentParticipants Int     @default(0)
-  image              String?  @db.VarChar(255)
-  isActive           Boolean  @default(true)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   // Relations
-  organizer User @relation(fields: [organizerId], references: [id], onDelete: Cascade)
   event_media    EventMedia[]
 
   @@map("events")

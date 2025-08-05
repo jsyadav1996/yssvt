@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { getAllEvents, getEventById, createEvent, updateEvent, deleteEvent } from '../controllers/eventController';
 import { requireManager } from '../middleware/auth';
+import { uploadMultipleImages } from '../middleware/upload';
 
 const router = Router();
 
@@ -31,12 +32,9 @@ router.get('/:id', getEventById);
 // @route   POST /api/events
 // @desc    Create new event (manager/admin only)
 // @access  Private
-router.post('/', requireManager, [
+router.post('/', requireManager, uploadMultipleImages, [
   body('title').trim().isLength({ min: 3, max: 100 }).withMessage('Title must be between 3 and 100 characters'),
-  body('description').trim().isLength({ min: 10 }).withMessage('Description must be at least 10 characters'),
   body('date').isISO8601().withMessage('Please provide a valid date'),
-  body('location').trim().isLength({ min: 3 }).withMessage('Location must be at least 3 characters'),
-  body('maxParticipants').optional().isInt({ min: 1 }).withMessage('Max participants must be a positive integer'),
   handleValidationErrors
 ], createEvent);
 

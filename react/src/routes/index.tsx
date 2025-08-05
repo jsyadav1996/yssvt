@@ -6,7 +6,9 @@ import DashboardPage from '@/pages/DashboardPage'
 import MembersPage from '@/pages/MembersPage'
 import MemberDetailPage from '@/pages/MemberDetailPage'
 import MemberEditPage from '@/pages/MemberEditPage'
+import MemberAddPage from '@/pages/MemberAddPage'
 import EventsPage from '@/pages/EventsPage'
+import EventAddPage from '@/pages/EventAddPage'
 import DonationsPage from '@/pages/DonationsPage'
 import ProfilePage from '@/pages/ProfilePage'
 
@@ -28,9 +30,11 @@ export function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/members" element={<MembersPage />} />
+      <Route path="/members/add" element={<MemberAddPage />} />
       <Route path="/members/:id" element={<MemberDetailPage />} />
       <Route path="/members/:id/edit" element={<MemberEditPage />} />
       <Route path="/events" element={<EventsPage />} />
+      <Route path="/events/add" element={<EventAddPage />} />
       <Route path="/donations" element={<DonationsPage />} />
       <Route path="/profile" element={<ProfilePage />} />
     </Routes>

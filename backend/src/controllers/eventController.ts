@@ -21,13 +21,7 @@ export const getAllEvents = async (req: Request, res: Response) => {
     const events = await prisma.event.findMany({
       where: filter,
       include: {
-        organizer: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
+        event_media: true
       },
       orderBy: { date: 'asc' },
       skip,
@@ -65,13 +59,7 @@ export const getEventById = async (req: Request, res: Response) => {
     const event = await prisma.event.findUnique({
       where: { id: parseInt(req.params.id) },
       include: {
-        organizer: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
+        event_media: true
       }
     });
     
@@ -99,33 +87,42 @@ export const getEventById = async (req: Request, res: Response) => {
 // @access  Private
 export const createEvent = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, description, date, location, maxParticipants, image } = req.body;
-
+    console.log('req.body', req.body)
+    const { title, description, date, location } = req.body;
+    
     const event = await prisma.event.create({
       data: {
         title,
         description,
         date: new Date(date),
-        location,
-        organizerId: parseInt(req.user!.id),
-        maxParticipants,
-        image
-      },
+        location
+      }
+    });
+
+    // Handle multiple images upload
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      const eventMediaData = req.files.map((file: any) => ({
+        eventId: event.id,
+        path: `/uploads/${file.filename}`
+      }));
+
+      await prisma.eventMedia.createMany({
+        data: eventMediaData
+      });
+    }
+
+    // Fetch the created event with media
+    const eventWithMedia = await prisma.event.findUnique({
+      where: { id: event.id },
       include: {
-        organizer: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
+        event_media: true
       }
     });
 
     res.status(201).json({
       success: true,
       message: 'Event created successfully',
-      data: { event }
+      data: { event: eventWithMedia }
     });
   } catch (error) {
     console.error('Create event error:', error);
@@ -142,16 +139,7 @@ export const updateEvent = async (req: Request, res: Response) => {
   try {
     const event = await prisma.event.update({
       where: { id: parseInt(req.params.id) },
-      data: req.body,
-      include: {
-        organizer: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
-      }
+      data: req.body
     });
 
     if (!event) {

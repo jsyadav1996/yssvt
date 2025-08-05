@@ -46,18 +46,33 @@ interface UserProfile {
 }
 
 // Event interfaces
+interface EventMedia {
+  id: number
+  eventId: number
+  path: string
+  createdAt: string
+}
+
 interface Event {
   id: string
   title: string
   description: string
   date: string
   location: string
-  maxParticipants?: number
-  currentParticipants: number
-  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
-  createdBy: string
   createdAt: string
   updatedAt: string
+  event_media?: EventMedia[]
+}
+
+interface EventsWithPagination {
+  events: Event[]
+  pagination: {
+    currentPage: number
+    hasNext: boolean
+    hasPrev: boolean
+    totalEvents: number
+    totalPages: number
+  }
 }
 
 interface CreateEventData {
@@ -65,7 +80,6 @@ interface CreateEventData {
   description: string
   date: string
   location: string
-  maxParticipants?: number
 }
 
 // Donation interfaces
@@ -197,7 +211,7 @@ class ApiClient {
   }
 
   // Event endpoints
-  async getAllEvents(): Promise<ApiResponse<Event[]>> {
+  async getAllEvents(): Promise<ApiResponse<EventsWithPagination>> {
     return this.request('/events')
   }
 
@@ -210,6 +224,41 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify(data)
     })
+  }
+
+  async createEventWithImages(formData: FormData): Promise<ApiResponse<{ event: Event }>> {
+    // Import auth store dynamically to avoid circular dependency
+    const { useAuthStore } = await import('@/store/auth')
+    const token = useAuthStore.getState().token
+    
+    const config: RequestInit = {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+        // Don't set Content-Type for FormData - let the browser set it with boundary
+      },
+      body: formData
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/events`, config)
+      const data = await response.json()
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || 'Request failed',
+          errors: data.errors
+        }
+      }
+      
+      return data
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Network error'
+      }
+    }
   }
 
   async updateEvent(id: string, data: Partial<CreateEventData>): Promise<ApiResponse<{ event: Event }>> {
@@ -255,6 +304,7 @@ export const apiClient = new ApiClient()
 export type { 
   User, 
   Event, 
+  EventMedia,
   Donation, 
   CreateEventData, 
   CreateDonationData, 
