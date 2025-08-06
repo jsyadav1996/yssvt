@@ -79,20 +79,20 @@ export default function LoginPage() {
     <div className="min-h-screen bg-white">
 
       {/* Main Content */}
-      <main className="px-4 py-6">
+      <main className="px-3 sm:px-4 py-4 sm:py-6">
         <div className="max-w-sm mx-auto">
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {errors.general && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+              <div className="bg-red-50 border border-red-200 text-red-600 px-3 sm:px-4 py-2 sm:py-3 rounded-xl text-xs sm:text-sm">
                 {errors.general}
               </div>
             )}
 
             {/* Email Field */}
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-1 sm:space-y-2">
+              <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700">
                 Email Address
               </label>
               <div className="relative">
@@ -102,21 +102,21 @@ export default function LoginPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base ${
                     errors.email ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Enter your email"
                   disabled={loading}
                 />
                 {errors.email && (
-                  <p className="text-sm text-red-600 mt-1">{errors.email}</p>
+                  <p className="text-xs sm:text-sm text-red-600 mt-1">{errors.email}</p>
                 )}
               </div>
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <div className="space-y-1 sm:space-y-2">
+              <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-700">
                 Password
               </label>
               <div className="relative">
@@ -126,7 +126,7 @@ export default function LoginPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-12 ${
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent pr-10 sm:pr-12 text-sm sm:text-base ${
                     errors.password ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Enter your password"
@@ -135,13 +135,13 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                  className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
                   disabled={loading}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </button>
                 {errors.password && (
-                  <p className="text-sm text-red-600 mt-1">{errors.password}</p>
+                  <p className="text-xs sm:text-sm text-red-600 mt-1">{errors.password}</p>
                 )}
               </div>
             </div>
@@ -153,11 +153,11 @@ export default function LoginPage() {
                   type="checkbox"
                   className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                <span className="ml-2 text-xs sm:text-sm text-gray-600">Remember me</span>
               </label>
               <button
                 type="button"
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium"
                 disabled={loading}
               >
                 Forgot password?
@@ -168,12 +168,12 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary-600 text-white py-3 px-4 rounded-xl font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-full bg-primary-600 text-white py-2 sm:py-3 px-4 rounded-xl font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                  Signing in...
+                  <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  <span className="text-sm sm:text-base">Signing in...</span>
                 </div>
               ) : (
                 'Sign In'
@@ -182,15 +182,15 @@ export default function LoginPage() {
           </form>
 
           {/* Divider */}
-          <div className="my-8 flex items-center">
+          <div className="my-6 sm:my-8 flex items-center">
             <div className="flex-1 border-t border-gray-200"></div>
-            <span className="px-4 text-sm text-gray-500">or</span>
+            <span className="px-3 sm:px-4 text-xs sm:text-sm text-gray-500">or</span>
             <div className="flex-1 border-t border-gray-200"></div>
           </div>
 
           {/* Sign Up Link */}
           <div className="text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-600">
               Don't have an account?{' '}
               <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
                 Sign up

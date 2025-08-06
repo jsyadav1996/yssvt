@@ -151,10 +151,10 @@ class ApiClient {
     })
   }
 
-  async register(name: string, email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
+  async register(firstName: string, lastName: string, email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
     return this.request('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password })
+      body: JSON.stringify({ firstName, lastName, email, password })
     })
   }
 

@@ -125,26 +125,31 @@ export function SidebarDrawer() {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed top-0 left-0 h-full w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out pointer-events-none ${
-        isOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full'
-      }`}>
+      <div 
+        className={`fixed top-0 left-0 h-full w-80 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : 'translate-x-[-105%]'
+        }`}
+        style={{
+          pointerEvents: isOpen ? 'auto' : 'none'
+        }}
+      >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
           {user && (
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-primary-600 font-semibold">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                <span className="text-primary-600 font-semibold text-sm sm:text-base">
                   {user?.firstName?.charAt(0)?.toUpperCase() + user?.lastName?.charAt(0)?.toUpperCase()}
                 </span>
               </div>
               <div>
-                <h2 className="font-semibold text-gray-900">
+                <h2 className="font-semibold text-gray-900 text-sm sm:text-base">
                   {`${user?.firstName} ${user?.lastName}`}
                 </h2>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   {user?.email}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   { user.role?.charAt(0).toUpperCase() + user.role?.slice(1) }
                 </p>
               </div>
@@ -154,42 +159,42 @@ export function SidebarDrawer() {
             onClick={() => setIsOpen(false)}
             className="text-gray-500 active:text-gray-700 p-1"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
 
         {/* Install App Button - Show when available and not installed */}
         {deferredPrompt && !isInstalled && (
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-3 sm:p-4 border-b border-gray-200">
             <button
               onClick={handleInstallApp}
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left bg-green-50 text-green-700 hover:bg-green-100 transition-colors border border-green-200"
+              className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-left bg-green-50 text-green-700 hover:bg-green-100 transition-colors border border-green-200"
             >
-              <Download className="h-5 w-5" />
-              <span className="font-medium">Install App</span>
+              <Download className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium text-sm sm:text-base">Install App</span>
             </button>
           </div>
         )}
 
         {/* Navigation Items - Same for all users */}
-        <nav className="p-4">
-          <div className="space-y-2">
+        <nav className="p-3 sm:p-4">
+          <div className="space-y-1 sm:space-y-2">
             {navItems.map((item) => (
               <button
                 key={item.path}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-left transition-colors ${
                   isActive(item.path)
                     ? 'bg-primary-50 text-primary-700 border border-primary-200'
                     : 'text-gray-700 hover:bg-gray-50'
                 }`}
                 onClick={() => handleNavigation(item.path)}
               >
-                <span className={`h-5 w-5 flex items-center justify-center ${
+                <span className={`h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center ${
                   isActive(item.path) ? 'text-primary-600' : 'text-gray-500'
                 }`}>
                   {navigationRoutes.find(r => r.path === item.path)?.icon || '📄'}
                 </span>
-                <span className="font-medium">{item.title}</span>
+                <span className="font-medium text-sm sm:text-base">{item.title}</span>
               </button>
             ))}
           </div>
@@ -197,30 +202,30 @@ export function SidebarDrawer() {
 
         {/* Logout Button - Only for authenticated users */}
         {user ? (
-          <div className="p-4 border-t border-gray-200 mt-auto">
+          <div className="p-3 sm:p-4 border-t border-gray-200 mt-auto">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-left text-red-600 hover:bg-red-50 transition-colors"
             >
-              <LogOut className="h-5 w-5" />
-              <span className="font-medium">Sign Out</span>
+              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium text-sm sm:text-base">Sign Out</span>
             </button>
           </div>
         ) : (
-          <div className="p-4 border-t border-gray-200 mt-auto">
+          <div className="p-3 sm:p-4 border-t border-gray-200 mt-auto space-y-2">
             <button
               onClick={() => handleNavigation('/login')}
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-green-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-left text-green-600 hover:bg-red-50 transition-colors"
             >
-              <LogOut className="h-5 w-5" />
-              <span className="font-medium">Login</span>
+              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium text-sm sm:text-base">Login</span>
             </button>
             <button
               onClick={() => handleNavigation('/register')}
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left text-green-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-left text-green-600 hover:bg-red-50 transition-colors"
             >
-              <LogOut className="h-5 w-5" />
-              <span className="font-medium">Register</span>
+              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="font-medium text-sm sm:text-base">Register</span>
             </button>
           </div>
         )}

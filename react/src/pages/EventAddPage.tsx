@@ -88,34 +88,34 @@ const EventAddPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <button
           onClick={() => navigate('/events')}
           className="p-2 text-gray-500 hover:text-gray-700"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Add New Event</h1>
-          <p className="text-gray-600">Create a new community event</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Add New Event</h1>
+          <p className="text-sm sm:text-base text-gray-600">Create a new community event</p>
         </div>
       </div>
 
       {/* Form */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Error Message */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded-md text-sm sm:text-base">
               {error}
             </div>
           )}
 
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="title" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               Title *
             </label>
             <input
@@ -125,14 +125,14 @@ const EventAddPage: React.FC = () => {
               value={formData.title}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
               placeholder="Enter event title"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="description" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               Description
             </label>
             <textarea
@@ -141,14 +141,14 @@ const EventAddPage: React.FC = () => {
               value={formData.description}
               onChange={handleInputChange}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
               placeholder="Enter event description"
             />
           </div>
 
           {/* Date */}
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="date" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               Date *
             </label>
             <input
@@ -158,13 +158,13 @@ const EventAddPage: React.FC = () => {
               value={formData.date}
               onChange={handleInputChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
             />
           </div>
 
           {/* Location */}
           <div>
-            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="location" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               Location
             </label>
             <input
@@ -173,33 +173,33 @@ const EventAddPage: React.FC = () => {
               name="location"
               value={formData.location}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
               placeholder="Enter event location"
             />
           </div>
 
           {/* Image Upload */}
           <div>
-            <label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="images" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               Event Images (Max 20)
             </label>
             
             {/* Image Previews */}
             {imagePreviews.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-4 mb-3 sm:mb-4">
                 {imagePreviews.map((preview, index) => (
                   <div key={index} className="relative">
                     <img
                       src={preview}
                       alt={`Preview ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-md border border-gray-300"
+                      className="w-full h-24 sm:h-32 object-cover rounded-md border border-gray-300"
                     />
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                      className="absolute top-1 sm:top-2 right-1 sm:right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
                     >
-                      <XIcon className="h-4 w-4" />
+                      <XIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                     </button>
                   </div>
                 ))}
@@ -208,7 +208,7 @@ const EventAddPage: React.FC = () => {
             
             {/* Upload Area */}
             {imagePreviews.length < 20 && (
-              <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-gray-400 transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded-md p-4 sm:p-6 text-center hover:border-gray-400 transition-colors">
                 <input
                   type="file"
                   id="images"
@@ -219,8 +219,8 @@ const EventAddPage: React.FC = () => {
                   className="hidden"
                 />
                 <label htmlFor="images" className="cursor-pointer">
-                  <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-2 text-sm text-gray-600">
+                  <Upload className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400" />
+                  <p className="mt-2 text-xs sm:text-sm text-gray-600">
                     Click to upload images
                   </p>
                   <p className="text-xs text-gray-500">
@@ -232,21 +232,21 @@ const EventAddPage: React.FC = () => {
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={handleCancel}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="flex items-center justify-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              <X className="h-4 w-4 mr-2" />
+              <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="h-4 w-4 mr-2" />
+              <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               {isLoading ? 'Creating...' : 'Create Event'}
             </button>
           </div>

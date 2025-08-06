@@ -11,7 +11,8 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -30,10 +31,16 @@ export default function RegisterPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Full name is required'
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Name must be at least 2 characters'
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required'
+    } else if (formData.firstName.trim().length < 2) {
+      newErrors.firstName = 'First name must be at least 2 characters'
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required'
+    } else if (formData.lastName.trim().length < 2) {
+      newErrors.lastName = 'Last name must be at least 2 characters'
     }
 
     if (!formData.email) {
@@ -67,7 +74,7 @@ export default function RegisterPage() {
     setErrors({})
     
     try {
-      const response = await apiClient.register(formData.name, formData.email, formData.password)
+      const response = await apiClient.register(formData.firstName, formData.lastName, formData.email, formData.password)
       
       if (response.success && response.data) {
         // Registration successful - auto login
@@ -76,6 +83,7 @@ export default function RegisterPage() {
       } else {
         // Registration failed
         if (response.errors) {
+          console.log('response.errors', response.errors)
           // Handle validation errors from backend
           const validationErrors: Record<string, string> = {}
           response.errors.forEach((error: any) => {
@@ -139,25 +147,47 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Name Field */}
+            {/* First Name Field */}
             <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                First Name
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                value={formData.name}
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
                 onChange={handleChange}
                 className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
-                  errors.name ? 'border-red-300' : 'border-gray-300'
+                  errors.firstName ? 'border-red-300' : 'border-gray-300'
                 }`}
-                placeholder="Enter your full name"
+                placeholder="Enter your first name"
                 disabled={loading}
               />
-              {errors.name && (
-                <p className="text-sm text-red-600 mt-1">{errors.name}</p>
+              {errors.firstName && (
+                <p className="text-sm text-red-600 mt-1">{errors.firstName}</p>
+              )}
+            </div>
+
+            {/* Last Name Field */}
+            <div className="space-y-2">
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                Last Name
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${
+                  errors.lastName ? 'border-red-300' : 'border-gray-300'
+                }`}
+                placeholder="Enter your last name"
+                disabled={loading}
+              />
+              {errors.lastName && (
+                <p className="text-sm text-red-600 mt-1">{errors.lastName}</p>
               )}
             </div>
 
