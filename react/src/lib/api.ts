@@ -108,7 +108,7 @@ interface DonationsWithPagination {
     currentPage: number
     hasNext: boolean
     hasPrev: boolean
-    totalEvents: number
+    totalDonations: number
     totalPages: number
   }
 }
@@ -231,8 +231,8 @@ class ApiClient {
   }
 
   // Event endpoints
-  async getAllEvents(): Promise<ApiResponse<EventsWithPagination>> {
-    return this.request('/events')
+  async getAllEvents(page: number = 1, limit: number = 10): Promise<ApiResponse<EventsWithPagination>> {
+    return this.request(`/events?page=${page}&limit=${limit}`)
   }
 
   async getEventById(id: string): Promise<ApiResponse<Event>> {
@@ -330,12 +330,12 @@ class ApiClient {
   }
 
   // Donation endpoints
-  async getAllDonations(): Promise<ApiResponse<DonationsWithPagination>> {
-    return this.request('/donations')
+  async getAllDonations(page: number = 1, limit: number = 10): Promise<ApiResponse<DonationsWithPagination>> {
+    return this.request(`/donations?page=${page}&limit=${limit}`)
   }
 
-  async getUserDonations(): Promise<ApiResponse<DonationsWithPagination>> {
-    return this.request('/donations/my')
+  async getUserDonations(page: number = 1, limit: number = 10): Promise<ApiResponse<DonationsWithPagination>> {
+    return this.request(`/donations/my?page=${page}&limit=${limit}`)
   }
 
   async createDonation(data: CreateDonationData): Promise<ApiResponse<{ donation: Donation }>> {

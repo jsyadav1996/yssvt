@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { apiClient, Donation } from '@/lib/api'
-import { Heart, Plus, IndianRupee, Edit, Trash2 } from 'lucide-react'
+import { Heart, Plus, IndianRupee, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function DonationsPage() {
   const navigate = useNavigate()
@@ -12,6 +12,10 @@ export default function DonationsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalDonations, setTotalDonations] = useState(0)
+  const [pageSize] = useState(10)
 
   // Fetch donations based on user role
   useEffect(() => {
@@ -23,15 +27,17 @@ export default function DonationsPage() {
         let response
         if (currentUser?.role === 'admin' || currentUser?.role === 'manager') {
           // Admins and managers see all donations
-          response = await apiClient.getAllDonations()
+          response = await apiClient.getAllDonations(currentPage, pageSize)
         } else {
           // Regular users see only their donations
-          response = await apiClient.getUserDonations()
+          response = await apiClient.getUserDonations(currentPage, pageSize)
         }
         
         if (response.success && response.data) {
           setDonations(response.data.donations)
-          setTotalDonationAmount(response.data.totalDonationAmount)
+          setTotalDonationAmount(response.data.totalDonationAmount || 0)
+          setTotalPages(response.data.pagination.totalPages)
+          setTotalDonations(response.data.pagination.totalDonations)
         } else {
           setError(response.message || 'Failed to fetch donations')
         }
@@ -43,7 +49,7 @@ export default function DonationsPage() {
     }
 
     fetchDonations()
-  }, [currentUser?.role])
+  }, [currentUser?.role, currentPage])
 
 
 
@@ -99,6 +105,29 @@ export default function DonationsPage() {
     } finally {
       setDeletingId(null)
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page)
+    }
+  }
+
+  const getPageNumbers = () => {
+    const pages = []
+    const maxVisiblePages = 5
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i)
+    }
+    
+    return pages
   }
 
   if (loading) {
@@ -268,6 +297,65 @@ export default function DonationsPage() {
             Make First Donation
           </button>
         </div>
+      )}
+
+      {/* Sticky Bottom Bar with Pagination */}
+      {donations.length > 0 && totalPages > 1 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-0">
+          <div className="px-4 sm:px-6 py-3 sm:py-4">
+            <div className="flex items-center justify-between">
+              {/* Page Info */}
+              <div className="text-xs sm:text-sm text-gray-600">
+                Showing {((currentPage - 1) * 10) + 1} to {Math.min(currentPage * 10, totalDonations)} of {totalDonations} donations
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                {/* Previous Button */}
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {getPageNumbers().map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                        page === currentPage
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom padding to prevent content from being hidden behind sticky bar */}
+      {donations.length > 0 && totalPages > 1 && (
+        <div className="h-16 sm:h-20"></div>
       )}
     </div>
   )

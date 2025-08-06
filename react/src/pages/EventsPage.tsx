@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { apiClient, Event } from '@/lib/api'
-import { Calendar, Plus, MapPin, Edit, Trash2 } from 'lucide-react'
+import { Calendar, Plus, MapPin, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export default function EventsPage() {
   const navigate = useNavigate()
@@ -11,6 +11,10 @@ export default function EventsPage() {
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalEvents, setTotalEvents] = useState(0)
+  const [pageSize] = useState(10)
 
 
   // Fetch all events
@@ -19,13 +23,15 @@ export default function EventsPage() {
       try {
         setLoading(true)
         setError(null)
-        const response = await apiClient.getAllEvents()
+        const response = await apiClient.getAllEvents(currentPage, pageSize)
         
         if (response.success && response.data) {
           // Ensure response.data is an array
           const eventsArray = response.data.events
           setEvents(eventsArray)
           setFilteredEvents(eventsArray)
+          setTotalPages(response.data.pagination.totalPages)
+          setTotalEvents(response.data.pagination.totalEvents)
         } else {
           setError(response.message || 'Failed to fetch events')
           setEvents([])
@@ -41,7 +47,7 @@ export default function EventsPage() {
     }
 
     fetchEvents()
-  }, [])
+  }, [currentPage])
 
   // Filter events
   useEffect(() => {
@@ -96,6 +102,29 @@ export default function EventsPage() {
         alert('An error occurred while deleting the event')
       }
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page)
+    }
+  }
+
+  const getPageNumbers = () => {
+    const pages = []
+    const maxVisiblePages = 5
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i)
+    }
+    
+    return pages
   }
 
   if (loading) {
@@ -253,6 +282,65 @@ export default function EventsPage() {
             </button>
           )}
         </div>
+      )}
+
+      {/* Sticky Bottom Bar with Pagination */}
+      {events.length > 0 && totalPages > 1 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-0">
+          <div className="px-4 sm:px-6 py-3 sm:py-4">
+            <div className="flex items-center justify-between">
+              {/* Page Info */}
+              <div className="text-xs sm:text-sm text-gray-600">
+                Showing {((currentPage - 1) * 10) + 1} to {Math.min(currentPage * 10, totalEvents)} of {totalEvents} events
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                {/* Previous Button */}
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                  Previous
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {getPageNumbers().map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                        page === currentPage
+                          ? 'bg-blue-600 text-white'
+                          : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom padding to prevent content from being hidden behind sticky bar */}
+      {events.length > 0 && totalPages > 1 && (
+        <div className="h-16 sm:h-20"></div>
       )}
     </div>
   )
