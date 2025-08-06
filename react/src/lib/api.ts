@@ -268,6 +268,41 @@ class ApiClient {
     })
   }
 
+  async updateEventWithImages(id: string, formData: FormData): Promise<ApiResponse<{ event: Event }>> {
+    // Import auth store dynamically to avoid circular dependency
+    const { useAuthStore } = await import('@/store/auth')
+    const token = useAuthStore.getState().token
+    
+    const config: RequestInit = {
+      method: 'PUT',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+        // Don't set Content-Type for FormData - let the browser set it with boundary
+      },
+      body: formData
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/events/${id}`, config)
+      const data = await response.json()
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || 'Request failed',
+          errors: data.errors
+        }
+      }
+      
+      return data
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Network error'
+      }
+    }
+  }
+
   async deleteEvent(id: string): Promise<ApiResponse<{ message: string }>> {
     return this.request(`/events/${id}`, {
       method: 'DELETE'

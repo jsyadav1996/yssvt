@@ -1,12 +1,15 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Save, X, Upload, X as XIcon } from 'lucide-react'
-import { apiClient } from '@/lib/api'
+import { apiClient, Event } from '@/lib/api'
 
-const EventAddPage: React.FC = () => {
+const EventEditPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [event, setEvent] = useState<Event | null>(null)
   
   const [formData, setFormData] = useState({
     title: '',
@@ -17,6 +20,47 @@ const EventAddPage: React.FC = () => {
   
   const [selectedImages, setSelectedImages] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [existingImages, setExistingImages] = useState<string[]>([])
+
+  // Fetch existing event data
+  useEffect(() => {
+    const fetchEvent = async () => {
+      if (!id) return
+      
+      try {
+        setFetchLoading(true)
+        setError(null)
+        const response = await apiClient.getEventById(id)
+        
+        if (response.success && response.data) {
+          const eventData = response.data
+          setEvent(eventData)
+          
+          // Set form data
+          setFormData({
+            title: eventData.title,
+            description: eventData.description,
+            date: eventData.date.split('T')[0], // Convert to date-only format
+            location: eventData.location || ''
+          })
+          
+          // Set existing images
+          if (eventData.event_media && eventData.event_media.length > 0) {
+            setExistingImages(eventData.event_media.map(media => media.path))
+          }
+        } else {
+          setError(response.message || 'Failed to fetch event')
+        }
+      } catch (err) {
+        setError('Network error occurred')
+        console.error('Error fetching event:', err)
+      } finally {
+        setFetchLoading(false)
+      }
+    }
+
+    fetchEvent()
+  }, [id])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -29,8 +73,9 @@ const EventAddPage: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     if (files.length > 0) {
-      // Limit to 20 images
-      const newFiles = files.slice(0, 20 - selectedImages.length)
+      // Limit to 20 images total (existing + new)
+      const maxNewImages = 20 - existingImages.length - selectedImages.length
+      const newFiles = files.slice(0, maxNewImages)
       setSelectedImages(prev => [...prev, ...newFiles])
       
       // Create preview URLs for new files
@@ -44,9 +89,13 @@ const EventAddPage: React.FC = () => {
     }
   }
 
-  const removeImage = (index: number) => {
+  const removeNewImage = (index: number) => {
     setSelectedImages(prev => prev.filter((_, i) => i !== index))
     setImagePreviews(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const removeExistingImage = (index: number) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,39 +116,94 @@ const EventAddPage: React.FC = () => {
           formDataToSend.append('images', image)
         })
       }
-      console.log(formDataToSend)
-      const response = await apiClient.createEventWithImages(formDataToSend)
+
+      const response = await apiClient.updateEventWithImages(id!, formDataToSend)
       
       if (response.success) {
-        navigate('/events')
+        navigate(`/events/${id}`)
       } else {
-        setError(response.message || 'Failed to create event')
+        setError(response.message || 'Failed to update event')
       }
     } catch (err) {
-      setError('An error occurred while creating the event')
-      console.error('Error creating event:', err)
+      setError('An error occurred while updating the event')
+      console.error('Error updating event:', err)
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleCancel = () => {
-    navigate('/events')
+    navigate(`/events/${id}`)
   }
+
+  if (fetchLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate('/events')}
+            className="p-2 text-gray-500 hover:text-gray-700"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-32"></div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !event) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate('/events')}
+            className="p-2 text-gray-500 hover:text-gray-700"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Edit Event</h1>
+          </div>
+        </div>
+        
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-600 mb-4">{error || 'Event not found'}</p>
+          <button 
+            onClick={() => navigate('/events')}
+            className="btn-primary"
+          >
+            Back to Events
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const totalImages = existingImages.length + selectedImages.length
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-4">
         <button
-          onClick={() => navigate('/events')}
+          onClick={() => navigate(`/events/${id}`)}
           className="p-2 text-gray-500 hover:text-gray-700"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Add New Event</h1>
-          <p className="text-gray-600">Create a new community event</p>
+          <h1 className="text-2xl font-bold text-gray-900">Edit Event</h1>
+          <p className="text-gray-600">Update event details</p>
         </div>
       </div>
 
@@ -178,25 +282,23 @@ const EventAddPage: React.FC = () => {
             />
           </div>
 
-          {/* Image Upload */}
-          <div>
-            <label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-2">
-              Event Images (Max 20)
-            </label>
-            
-            {/* Image Previews */}
-            {imagePreviews.length > 0 && (
+          {/* Existing Images */}
+          {existingImages.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Existing Images
+              </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                {imagePreviews.map((preview, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={preview}
-                      alt={`Preview ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-md border border-gray-300"
-                    />
+                                 {existingImages.map((imagePath, index) => (
+                   <div key={index} className="relative">
+                     <img
+                       src={imagePath}
+                       alt={`Existing ${index + 1}`}
+                       className="w-full h-32 object-cover rounded-md border border-gray-300"
+                     />
                     <button
                       type="button"
-                      onClick={() => removeImage(index)}
+                      onClick={() => removeExistingImage(index)}
                       className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
                     >
                       <XIcon className="h-4 w-4" />
@@ -204,10 +306,39 @@ const EventAddPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-            )}
-            
-            {/* Upload Area */}
-            {imagePreviews.length < 20 && (
+            </div>
+          )}
+
+          {/* New Image Upload */}
+          {totalImages < 20 && (
+            <div>
+              <label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-2">
+                Add New Images (Max 20 total)
+              </label>
+              
+              {/* New Image Previews */}
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={preview}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-md border border-gray-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeNewImage(index)}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                      >
+                        <XIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Upload Area */}
               <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center hover:border-gray-400 transition-colors">
                 <input
                   type="file"
@@ -224,12 +355,12 @@ const EventAddPage: React.FC = () => {
                     Click to upload images
                   </p>
                   <p className="text-xs text-gray-500">
-                    PNG, JPG, GIF up to 5MB each ({imagePreviews.length}/20)
+                    PNG, JPG, GIF up to 5MB each ({totalImages}/20)
                   </p>
                 </label>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Form Actions */}
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
@@ -247,7 +378,7 @@ const EventAddPage: React.FC = () => {
               className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="h-4 w-4 mr-2" />
-              {isLoading ? 'Creating...' : 'Create Event'}
+              {isLoading ? 'Updating...' : 'Update Event'}
             </button>
           </div>
         </form>
@@ -256,4 +387,4 @@ const EventAddPage: React.FC = () => {
   )
 }
 
-export default EventAddPage 
+export default EventEditPage 

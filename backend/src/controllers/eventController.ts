@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
+import { deleteFromSupabase, uploadToSupabase } from '../middleware/upload';
 
 // Extend Request to include user
 interface AuthRequest extends Request {
@@ -28,12 +29,15 @@ export const getAllEvents = async (req: Request, res: Response) => {
       take: Number(limit)
     });
 
+    // Media paths are already full URLs from Supabase
+    const eventsWithFullUrls = events;
+
     const total = await prisma.event.count({ where: filter });
 
     res.json({
       success: true,
       data: {
-        events,
+        events: eventsWithFullUrls,
         pagination: {
           currentPage: Number(page),
           totalPages: Math.ceil(total / Number(limit)),
@@ -70,9 +74,10 @@ export const getEventById = async (req: Request, res: Response) => {
       });
     }
 
+    // Media paths are already full URLs from Supabase
     return res.json({
       success: true,
-      data: { event }
+      data: event
     });
   } catch (error) {
     console.error('Get event error:', error);
@@ -87,7 +92,6 @@ export const getEventById = async (req: Request, res: Response) => {
 // @access  Private
 export const createEvent = async (req: AuthRequest, res: Response) => {
   try {
-    console.log('req.body', req.body)
     const { title, description, date, location } = req.body;
     
     const event = await prisma.event.create({
@@ -101,11 +105,16 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
 
     // Handle multiple images upload
     if (req.files && Array.isArray(req.files) && req.files.length > 0) {
-      const eventMediaData = req.files.map((file: any) => ({
-        eventId: event.id,
-        path: `/uploads/${file.filename}`
-      }));
+      const uploadPromises = req.files.map(async (file: Express.Multer.File) => {
+        const uploadedFile = await uploadToSupabase(file);
+        return {
+          eventId: event.id,
+          path: uploadedFile.url
+        };
+      });
 
+      const eventMediaData = await Promise.all(uploadPromises);
+      
       await prisma.eventMedia.createMany({
         data: eventMediaData
       });
@@ -119,10 +128,16 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       }
     });
 
+    // Media paths are already full URLs from Supabase
+    const eventWithFullUrls = {
+      ...eventWithMedia,
+      event_media: eventWithMedia?.event_media || []
+    };
+
     res.status(201).json({
       success: true,
       message: 'Event created successfully',
-      data: { event: eventWithMedia }
+      data: { event: eventWithFullUrls }
     });
   } catch (error) {
     console.error('Create event error:', error);
@@ -137,22 +152,59 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
 // @access  Private
 export const updateEvent = async (req: Request, res: Response) => {
   try {
+    const { title, description, date, location } = req.body;
+    
+    // Handle image upload
+    let imagePath = null;
+    if (req.file) {
+      imagePath = `/uploads/${req.file.filename}`;
+    }
+
     const event = await prisma.event.update({
       where: { id: parseInt(req.params.id) },
-      data: req.body
+      data: {
+        title,
+        description,
+        date: new Date(date),
+        location
+      }
     });
 
-    if (!event) {
-      return res.status(404).json({
-        success: false,
-        message: 'Event not found'
+    // Handle multiple images upload
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
+      const uploadPromises = req.files.map(async (file: Express.Multer.File) => {
+        const uploadedFile = await uploadToSupabase(file);
+        return {
+          eventId: parseInt(req.params.id),
+          path: uploadedFile.url
+        };
+      });
+
+      const eventMediaData = await Promise.all(uploadPromises);
+      
+      await prisma.eventMedia.createMany({
+        data: eventMediaData
       });
     }
+
+    // Fetch the updated event with media
+    const eventWithMedia = await prisma.event.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        event_media: true
+      }
+    });
+
+    // Media paths are already full URLs from Supabase
+    const eventWithFullUrls = {
+      ...eventWithMedia,
+      event_media: eventWithMedia?.event_media || []
+    };
 
     return res.json({
       success: true,
       message: 'Event updated successfully',
-      data: { event }
+      data: { event: eventWithFullUrls }
     });
   } catch (error) {
     console.error('Update event error:', error);
@@ -167,23 +219,105 @@ export const updateEvent = async (req: Request, res: Response) => {
 // @access  Private
 export const deleteEvent = async (req: Request, res: Response) => {
   try {
-    const event = await prisma.event.delete({
-      where: { id: parseInt(req.params.id) }
+    // First, get the event with its media to delete files from storage
+    const eventWithMedia = await prisma.event.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        event_media: true
+      }
     });
-    
-    if (!event) {
+
+    if (!eventWithMedia) {
       return res.status(404).json({
         success: false,
         message: 'Event not found'
       });
     }
 
+    // Delete files from Supabase storage
+    if (eventWithMedia.event_media.length > 0) {
+      const deletePromises = eventWithMedia.event_media.map(async (media) => {
+        try {
+          // Extract filename from Supabase URL
+          const url = media.path;
+          if (url) {
+            // Extract filename from Supabase URL (last part after the last slash)
+            const filename = url.split('/').pop();
+            if (filename) {
+              await deleteFromSupabase(filename);
+            }
+          }
+        } catch (error) {
+          console.error(`Error deleting file ${media.path}:`, error);
+          // Continue with other files even if one fails
+        }
+      });
+
+      await Promise.all(deletePromises);
+    }
+
+    // Delete the event (this will cascade delete event_media records)
+    await prisma.event.delete({
+      where: { id: parseInt(req.params.id) }
+    });
+
     return res.json({
       success: true,
-      message: 'Event deleted successfully'
+      message: 'Event and associated media deleted successfully'
     });
   } catch (error) {
     console.error('Delete event error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+}; 
+
+// @desc    Delete individual event media (manager/admin only)
+// @access  Private
+export const deleteEventMedia = async (req: Request, res: Response) => {
+  try {
+    const mediaId = parseInt(req.params.mediaId);
+    
+    // Get the media record to get the file path
+    const media = await prisma.eventMedia.findUnique({
+      where: { id: mediaId }
+    });
+
+    if (!media) {
+      return res.status(404).json({
+        success: false,
+        message: 'Event media not found'
+      });
+    }
+
+    // Delete file from Supabase storage
+    try {
+      const url = media.path;
+      if (url) {
+        // Extract filename from Supabase URL (last part after the last slash)
+        const filename = url.split('/').pop();
+        if (filename) {
+          await deleteFromSupabase(filename);
+        }
+      }
+    } catch (error) {
+      console.error(`Error deleting file ${media.path}:`, error);
+      // Continue with database deletion even if file deletion fails
+    }
+
+    // Delete the media record from database
+    await prisma.eventMedia.delete({
+      where: { id: mediaId }
+    });
+
+    return res.json({
+      success: true,
+      message: 'Event media deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete event media error:', error);
     return res.status(500).json({
       success: false,
       message: 'Server error'

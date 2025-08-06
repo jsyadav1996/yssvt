@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
-import { getAllEvents, getEventById, createEvent, updateEvent, deleteEvent } from '../controllers/eventController';
+import { getAllEvents, getEventById, createEvent, updateEvent, deleteEvent, deleteEventMedia } from '../controllers/eventController';
 import { requireManager } from '../middleware/auth';
 import { uploadMultipleImages } from '../middleware/upload';
 
@@ -41,12 +41,9 @@ router.post('/', requireManager, uploadMultipleImages, [
 // @route   PUT /api/events/:id
 // @desc    Update event (manager/admin only)
 // @access  Private
-router.put('/:id', requireManager, [
+router.put('/:id', requireManager, uploadMultipleImages, [
   body('title').optional().trim().isLength({ min: 3, max: 100 }),
-  body('description').optional().trim().isLength({ min: 10 }),
   body('date').optional().isISO8601(),
-  body('location').optional().trim().isLength({ min: 3 }),
-  body('maxParticipants').optional().isInt({ min: 1 }),
   handleValidationErrors
 ], updateEvent);
 
@@ -54,5 +51,10 @@ router.put('/:id', requireManager, [
 // @desc    Delete event (manager/admin only)
 // @access  Private
 router.delete('/:id', requireManager, deleteEvent);
+
+// @route   DELETE /api/events/media/:mediaId
+// @desc    Delete individual event media (manager/admin only)
+// @access  Private
+router.delete('/media/:mediaId', requireManager, deleteEventMedia);
 
 export default router; 

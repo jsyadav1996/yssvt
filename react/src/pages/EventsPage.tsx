@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { apiClient, Event } from '@/lib/api'
-import { Calendar, Plus, MapPin } from 'lucide-react'
+import { Calendar, Plus, MapPin, Edit, Trash2 } from 'lucide-react'
 
 export default function EventsPage() {
   const navigate = useNavigate()
@@ -73,6 +73,30 @@ export default function EventsPage() {
       month: 'long',
       day: 'numeric'
     })
+  }
+
+  const handleEditEvent = (eventId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    navigate(`/events/${eventId}/edit`)
+  }
+
+  const handleDeleteEvent = async (eventId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    if (window.confirm('Are you sure you want to delete this event?')) {
+      try {
+        const response = await apiClient.deleteEvent(eventId)
+        if (response.success) {
+          // Refresh the events list
+          window.location.reload()
+        } else {
+          alert('Failed to delete event: ' + response.message)
+        }
+      } catch (error) {
+        console.error('Error deleting event:', error)
+        alert('An error occurred while deleting the event')
+      }
+    }
   }
 
   if (loading) {
@@ -156,6 +180,22 @@ export default function EventsPage() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <h3 className="font-semibold text-gray-900 text-lg">{event.title}</h3>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={(e) => handleEditEvent(event.id, e)}
+                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      title="Edit event"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDeleteEvent(event.id, e)}
+                      className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      title="Delete event"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
                 
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
