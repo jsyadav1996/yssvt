@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../lib/prisma';
+import { donationService } from '../services/donationService';
 
 // Extend Request to include user
 interface AuthRequest extends Request {
@@ -11,45 +11,25 @@ interface AuthRequest extends Request {
 export const getAllDonations = async (req: Request, res: Response) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const skip = (Number(page) - 1) * Number(limit);
 
-    const donations = await prisma.donation.findMany({
-      include: {
-        donor: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: Number(limit)
+    const result = await donationService.getDonations({
+      page: Number(page),
+      limit: Number(limit)
     });
 
-    const total = await prisma.donation.count();
-
-    // Calculate total donation amount
-    const totalAmountResult = await prisma.donation.aggregate({
-      _sum: {
-        amount: true
-      }
-    });
-
-    const totalDonationAmount = totalAmountResult._sum.amount || 0;
+    const totalDonationAmount = await donationService.getTotalDonationAmount();
 
     res.json({
       success: true,
       data: {
-        donations,
+        donations: result.donations,
         totalDonationAmount: Number(totalDonationAmount),
         pagination: {
-          currentPage: Number(page),
-          totalPages: Math.ceil(total / Number(limit)),
-          totalDonations: total,
-          hasNext: skip + donations.length < total,
-          hasPrev: Number(page) > 1
+          currentPage: result.pagination.currentPage,
+          totalPages: result.pagination.totalPages,
+          totalDonations: result.pagination.totalDonations,
+          hasNext: result.pagination.hasNextPage,
+          hasPrev: result.pagination.hasPrevPage
         }
       }
     });
@@ -67,38 +47,23 @@ export const getAllDonations = async (req: Request, res: Response) => {
 export const getUserDonations = async (req: AuthRequest, res: Response) => {
   try {
     const { page = 1, limit = 10 } = req.query;
-    const skip = (Number(page) - 1) * Number(limit);
 
-    const donations = await prisma.donation.findMany({
-      where: { donorId: parseInt(req.user!.id) },
-      include: {
-        donor: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: Number(limit)
-    });
-
-    const total = await prisma.donation.count({
-      where: { donorId: parseInt(req.user!.id) }
-    });
+    const result = await donationService.getUserDonations(
+      parseInt(req.user!.id),
+      Number(page),
+      Number(limit)
+    );
 
     res.json({
       success: true,
       data: {
-        donations,
+        donations: result.donations,
         pagination: {
-          currentPage: Number(page),
-          totalPages: Math.ceil(total / Number(limit)),
-          totalDonations: total,
-          hasNext: skip + donations.length < total,
-          hasPrev: Number(page) > 1
+          currentPage: result.pagination.currentPage,
+          totalPages: result.pagination.totalPages,
+          totalDonations: result.pagination.totalDonations,
+          hasNext: result.pagination.hasNextPage,
+          hasPrev: result.pagination.hasPrevPage
         }
       }
     });
@@ -117,25 +82,14 @@ export const createDonation = async (req: AuthRequest, res: Response) => {
   try {
     const { amount, purpose, paymentMethod, donorId, date, location, bankName } = req.body;
 
-    const donation = await prisma.donation.create({
-      data: {
-        donorId: donorId ? parseInt(donorId) : parseInt(req.user!.id),
-        amount,
-        purpose,
-        paymentMethod,
-        ...(date && { date: new Date(date) }),
-        ...(location && { location }),
-        ...(bankName && { bankName })
-      },
-      include: {
-        donor: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
-      }
+    const donation = await donationService.createDonation({
+      donorId: donorId ? parseInt(donorId) : parseInt(req.user!.id),
+      amount,
+      purpose,
+      paymentMethod,
+      ...(date && { date: new Date(date) }),
+      ...(location && { location }),
+      ...(bankName && { bankName })
     });
 
     res.status(201).json({
@@ -156,18 +110,7 @@ export const createDonation = async (req: AuthRequest, res: Response) => {
 // @access  Private
 export const getDonationById = async (req: Request, res: Response) => {
   try {
-    const donation = await prisma.donation.findUnique({
-      where: { id: parseInt(req.params.id) },
-      include: {
-        donor: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
-      }
-    });
+    const donation = await donationService.findDonationById(parseInt(req.params.id));
 
     if (!donation) {
       return res.status(404).json({
@@ -205,26 +148,7 @@ export const updateDonation = async (req: Request, res: Response) => {
       ...(bankName && { bankName })
     };
 
-    const donation = await prisma.donation.update({
-      where: { id: parseInt(req.params.id) },
-      data: updateData,
-      include: {
-        donor: {
-          select: {
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
-      }
-    });
-
-    if (!donation) {
-      return res.status(404).json({
-        success: false,
-        message: 'Donation not found'
-      });
-    }
+    const donation = await donationService.updateDonation(parseInt(req.params.id), updateData);
 
     return res.json({
       success: true,
@@ -244,9 +168,7 @@ export const updateDonation = async (req: Request, res: Response) => {
 // @access  Private
 export const deleteDonation = async (req: Request, res: Response) => {
   try {
-    const donation = await prisma.donation.findUnique({
-      where: { id: parseInt(req.params.id) }
-    });
+    const donation = await donationService.findDonationById(parseInt(req.params.id));
 
     if (!donation) {
       return res.status(404).json({
@@ -255,9 +177,7 @@ export const deleteDonation = async (req: Request, res: Response) => {
       });
     }
 
-    await prisma.donation.delete({
-      where: { id: parseInt(req.params.id) }
-    });
+    await donationService.deleteDonation(parseInt(req.params.id));
 
     return res.json({
       success: true,
