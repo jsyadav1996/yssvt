@@ -12,6 +12,9 @@ import EventAddPage from '@/pages/EventAddPage'
 import EventDetailPage from '@/pages/EventDetailPage'
 import EventEditPage from '@/pages/EventEditPage'
 import DonationsPage from '@/pages/DonationsPage'
+import DonationAddPage from '@/pages/DonationAddPage'
+import DonationDetailPage from '@/pages/DonationDetailPage'
+import DonationEditPage from '@/pages/DonationEditPage'
 import ProfilePage from '@/pages/ProfilePage'
 
 // Simple route configuration for navigation
@@ -40,6 +43,9 @@ export function AppRoutes() {
       <Route path="/events/:id" element={<EventDetailPage />} />
       <Route path="/events/:id/edit" element={<EventEditPage />} />
       <Route path="/donations" element={<DonationsPage />} />
+      <Route path="/donations/add" element={<DonationAddPage />} />
+      <Route path="/donations/:id" element={<DonationDetailPage />} />
+      <Route path="/donations/:id/edit" element={<DonationEditPage />} />
       <Route path="/profile" element={<ProfilePage />} />
     </Routes>
   )

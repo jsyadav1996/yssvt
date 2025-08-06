@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { apiClient, Donation } from '@/lib/api'
-import { Heart, Plus, DollarSign, Calendar, TrendingUp } from 'lucide-react'
+import { Heart, Plus, IndianRupee, Edit, Trash2 } from 'lucide-react'
 
 export default function DonationsPage() {
   const navigate = useNavigate()
   const { user: currentUser } = useAuthStore()
   const [donations, setDonations] = useState<Donation[]>([])
-  const [filteredDonations, setFilteredDonations] = useState<Donation[]>([])
+  const [totalDonationAmount, setTotalDonationAmount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'failed'>('all')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   // Fetch donations based on user role
   useEffect(() => {
@@ -30,8 +30,8 @@ export default function DonationsPage() {
         }
         
         if (response.success && response.data) {
-          setDonations(response.data)
-          setFilteredDonations(response.data)
+          setDonations(response.data.donations)
+          setTotalDonationAmount(response.data.totalDonationAmount)
         } else {
           setError(response.message || 'Failed to fetch donations')
         }
@@ -45,23 +45,7 @@ export default function DonationsPage() {
     fetchDonations()
   }, [currentUser?.role])
 
-  // Filter donations
-  useEffect(() => {
-    if (filter === 'all') {
-      setFilteredDonations(donations)
-    } else {
-      setFilteredDonations(donations.filter(donation => donation.status === filter))
-    }
-  }, [filter, donations])
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'completed': return 'bg-green-100 text-green-800'
-      case 'failed': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
@@ -72,9 +56,11 @@ export default function DonationsPage() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(amount)
   }
 
@@ -86,32 +72,51 @@ export default function DonationsPage() {
     })
   }
 
-  const calculateTotalAmount = (donations: Donation[]) => {
-    return donations.reduce((total, donation) => {
-      // Convert all currencies to USD for calculation (simplified)
-      if (donation.status === 'completed') {
-        return total + donation.amount
+  const handleEdit = (e: React.MouseEvent, donationId: string) => {
+    e.stopPropagation()
+    navigate(`/donations/${donationId}/edit`)
+  }
+
+  const handleDelete = async (e: React.MouseEvent, donationId: string) => {
+    e.stopPropagation()
+    
+    if (!confirm('Are you sure you want to delete this donation?')) {
+      return
+    }
+
+    try {
+      setDeletingId(donationId)
+      const response = await apiClient.deleteDonation(donationId)
+      
+      if (response.success) {
+        setDonations(prev => prev.filter(donation => donation.id !== donationId))
+      } else {
+        setError(response.message || 'Failed to delete donation')
       }
-      return total
-    }, 0)
+    } catch (err) {
+      setError('An error occurred while deleting the donation')
+      console.error('Error deleting donation:', err)
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Donations</h1>
-            <p className="text-gray-600">Manage community donations</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Donations</h1>
+            <p className="text-sm sm:text-base text-gray-600">Manage community donations</p>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 animate-pulse">
+              <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4 mb-3 sm:mb-4"></div>
+              <div className="h-2 sm:h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-2 sm:h-3 bg-gray-200 rounded w-2/3"></div>
             </div>
           ))}
         </div>
@@ -121,19 +126,19 @@ export default function DonationsPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Donations</h1>
-            <p className="text-gray-600">Manage community donations</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Donations</h1>
+            <p className="text-sm sm:text-base text-gray-600">Manage community donations</p>
           </div>
         </div>
         
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 sm:p-6 text-center">
+          <p className="text-red-600 mb-3 sm:mb-4 text-sm sm:text-base">{error}</p>
           <button 
             onClick={() => window.location.reload()}
-            className="btn-primary"
+            className="btn-primary text-sm sm:text-base"
           >
             Try Again
           </button>
@@ -143,16 +148,16 @@ export default function DonationsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Donations</h1>
-          <p className="text-gray-600">Manage community donations</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Donations</h1>
+          <p className="text-sm sm:text-base text-gray-600">Manage community donations</p>
         </div>
         <button
-          onClick={() => navigate('/donations/new')}
-          className="btn-primary flex items-center space-x-2"
+          onClick={() => navigate('/donations/add')}
+          className="btn-primary flex items-center gap-2 text-sm sm:text-base"
         >
           <Plus className="h-4 w-4" />
           <span>Make Donation</span>
@@ -160,181 +165,108 @@ export default function DonationsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Donations</p>
-              <p className="text-2xl font-bold text-gray-900">{donations.length}</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Total Donations</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900">{donations.length}</p>
             </div>
-            <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-              <Heart className="h-6 w-6 text-primary-600" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center">
+              <Heart className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
             </div>
           </div>
         </div>
         
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Amount</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(calculateTotalAmount(donations))}
+              <p className="text-xs sm:text-sm font-medium text-gray-600">Total Amount</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-900">
+                {formatCurrency(totalDonationAmount)}
               </p>
             </div>
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <DollarSign className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {donations.filter(d => d.status === 'completed').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {donations.filter(d => d.status === 'pending').length}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-yellow-600" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <IndianRupee className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex space-x-2">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'all'
-              ? 'bg-primary-100 text-primary-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          All Donations
-        </button>
-        <button
-          onClick={() => setFilter('pending')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'pending'
-              ? 'bg-yellow-100 text-yellow-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Pending
-        </button>
-        <button
-          onClick={() => setFilter('completed')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'completed'
-              ? 'bg-green-100 text-green-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Completed
-        </button>
-        <button
-          onClick={() => setFilter('failed')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            filter === 'failed'
-              ? 'bg-red-100 text-red-700'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          Failed
-        </button>
-      </div>
+
 
       {/* Donations List */}
-      {filteredDonations.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDonations.map((donation) => (
+      {donations.length > 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {donations.map((donation) => (
             <div
               key={donation.id}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => navigate(`/donations/${donation.id}`)}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-2xl">{getPaymentMethodIcon(donation.paymentMethod)}</span>
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl sm:text-2xl">{getPaymentMethodIcon(donation.paymentMethod)}</span>
                   <div>
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
                       {formatCurrency(donation.amount)}
                     </h3>
-                    <p className="text-sm text-gray-600 capitalize">
+                    <p className="text-xs sm:text-sm text-gray-600 capitalize">
                       {donation.paymentMethod.replace('_', ' ')}
                     </p>
                   </div>
                 </div>
-                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(donation.status)}`}>
-                  {donation.status}
-                </span>
+                
+                {/* Action Buttons */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => handleEdit(e, donation.id)}
+                    className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                    title="Edit donation"
+                  >
+                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </button>
+                  <button
+                    onClick={(e) => handleDelete(e, donation.id)}
+                    disabled={deletingId === donation.id}
+                    className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                    title="Delete donation"
+                  >
+                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </button>
+                </div>
               </div>
               
-              {donation.purpose && (
-                <p className="text-gray-600 text-sm mb-4">{donation.purpose}</p>
+              {donation.donor && (
+                <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">
+                  {donation.donor.firstName} {donation.donor.lastName}
+                </p>
               )}
               
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Anonymous:</span>
-                  <span className={donation.anonymous ? 'text-green-600' : 'text-gray-900'}>
-                    {donation.anonymous ? 'Yes' : 'No'}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-xs sm:text-sm">
                   <span className="text-gray-600">Date:</span>
-                  <span className="text-gray-900">{formatDate(donation.createdAt)}</span>
+                  <span className="text-gray-900">{formatDate(donation.date || donation.createdAt)}</span>
                 </div>
-                
-                {donation.transactionId && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Transaction ID:</span>
-                    <span className="text-gray-900 font-mono text-xs">
-                      {donation.transactionId.slice(0, 8)}...
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {filter === 'all' ? 'No donations yet' : `No ${filter} donations`}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-12 text-center">
+          <Heart className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+            No donations yet
           </h3>
-          <p className="text-gray-600 mb-6">
-            {filter === 'all' 
-              ? 'Be the first to make a donation to support our community'
-              : `No donations are currently ${filter}`
-            }
+          <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
+            Be the first to make a donation to support our community
           </p>
-          {filter === 'all' && (
-            <button
-              onClick={() => navigate('/donations/new')}
-              className="btn-primary"
-            >
-              Make First Donation
-            </button>
-          )}
+          <button
+            onClick={() => navigate('/donations/new')}
+            className="btn-primary text-sm sm:text-base"
+          >
+            Make First Donation
+          </button>
         </div>
       )}
     </div>

@@ -87,20 +87,40 @@ interface Donation {
   id: string
   amount: number
   purpose?: string
-  anonymous: boolean
   paymentMethod: 'online' | 'cash'
-  status: 'pending' | 'completed' | 'failed'
-  transactionId?: string
-  userId: string
+  donorId?: string
+  date: string
+  location?: string
+  bankName?: string
   createdAt: string
   updatedAt: string
+  donor?: {
+    firstName: string
+    lastName: string
+    email: string
+  }
+}
+
+interface DonationsWithPagination {
+  donations: Donation[],
+  totalDonationAmount: number,
+  pagination: {
+    currentPage: number
+    hasNext: boolean
+    hasPrev: boolean
+    totalEvents: number
+    totalPages: number
+  }
 }
 
 interface CreateDonationData {
   amount: number
   purpose?: string
-  anonymous: boolean
   paymentMethod: 'online' | 'cash'
+  donorId?: string
+  date?: string
+  location?: string
+  bankName?: string
 }
 
 class ApiClient {
@@ -310,11 +330,11 @@ class ApiClient {
   }
 
   // Donation endpoints
-  async getAllDonations(): Promise<ApiResponse<Donation[]>> {
+  async getAllDonations(): Promise<ApiResponse<DonationsWithPagination>> {
     return this.request('/donations')
   }
 
-  async getUserDonations(): Promise<ApiResponse<Donation[]>> {
+  async getUserDonations(): Promise<ApiResponse<DonationsWithPagination>> {
     return this.request('/donations/my')
   }
 
@@ -325,10 +345,20 @@ class ApiClient {
     })
   }
 
-  async updateDonationStatus(id: string, status: 'pending' | 'completed' | 'failed', transactionId?: string): Promise<ApiResponse<{ donation: Donation }>> {
-    return this.request(`/donations/${id}/status`, {
+  async getDonationById(id: string): Promise<ApiResponse<Donation>> {
+    return this.request(`/donations/${id}`)
+  }
+
+  async updateDonation(id: string, data: Partial<CreateDonationData>): Promise<ApiResponse<{ donation: Donation }>> {
+    return this.request(`/donations/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ status, transactionId })
+      body: JSON.stringify(data)
+    })
+  }
+
+  async deleteDonation(id: string): Promise<ApiResponse<{ message: string }>> {
+    return this.request(`/donations/${id}`, {
+      method: 'DELETE'
     })
   }
 }

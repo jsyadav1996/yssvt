@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { body, validationResult } from 'express-validator';
-import { getAllDonations, getUserDonations, createDonation, updateDonationStatus } from '../controllers/donationController';
+import { body, param, validationResult } from 'express-validator';
+import { getAllDonations, getUserDonations, createDonation, updateDonation, getDonationById, deleteDonation } from '../controllers/donationController';
 import { requireManager } from '../middleware/auth';
 
 const router = Router();
@@ -28,25 +28,52 @@ router.get('/', requireManager, getAllDonations);
 // @access  Private
 router.get('/my', getUserDonations);
 
+// @route   GET /api/donations/:id
+// @desc    Get donation by ID
+// @access  Private
+router.get('/:id', [
+  param('id').isInt().withMessage('Invalid donation ID'),
+  handleValidationErrors
+], getDonationById);
+
 // @route   POST /api/donations
 // @desc    Create new donation
 // @access  Private
 router.post('/', [
+  requireManager,
   body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
-
-  body('purpose').optional().trim().isLength({ max: 200 }),
-  body('anonymous').isBoolean().withMessage('Anonymous must be a boolean'),
+  body('purpose').optional().trim().isLength({ max: 500 }).withMessage('Purpose must be less than 500 characters'),
   body('paymentMethod').isIn(['online', 'cash']).withMessage('Invalid payment method'),
+  body('donorId').optional().isInt().withMessage('Invalid donor ID'),
+  body('date').optional().isISO8601().withMessage('Invalid date format'),
+  body('location').optional().trim().isLength({ max: 255 }).withMessage('Location must be less than 255 characters'),
+  body('bankName').optional().trim().isLength({ max: 100 }).withMessage('Bank name must be less than 100 characters'),
   handleValidationErrors
 ], createDonation);
 
-// @route   PUT /api/donations/:id/status
-// @desc    Update donation status (manager/admin only)
+// @route   PUT /api/donations/:id
+// @desc    Update donation
 // @access  Private
-router.put('/:id/status', requireManager, [
-  body('status').isIn(['pending', 'completed', 'failed']).withMessage('Invalid status'),
-  body('transactionId').optional().trim(),
+router.put('/:id', [
+  requireManager,
+  param('id').isInt().withMessage('Invalid donation ID'),
+  body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
+  body('purpose').optional().trim().isLength({ max: 500 }).withMessage('Purpose must be less than 500 characters'),
+  body('paymentMethod').isIn(['online', 'cash']).withMessage('Invalid payment method'),
+  body('donorId').optional().isInt().withMessage('Invalid donor ID'),
+  body('date').optional().isISO8601().withMessage('Invalid date format'),
+  body('location').optional().trim().isLength({ max: 255 }).withMessage('Location must be less than 255 characters'),
+  body('bankName').optional().trim().isLength({ max: 100 }).withMessage('Bank name must be less than 100 characters'),
   handleValidationErrors
-], updateDonationStatus);
+], updateDonation);
+
+// @route   DELETE /api/donations/:id
+// @desc    Delete donation
+// @access  Private
+router.delete('/:id', [
+  requireManager,
+  param('id').isInt().withMessage('Invalid donation ID'),
+  handleValidationErrors
+], deleteDonation);
 
 export default router; 

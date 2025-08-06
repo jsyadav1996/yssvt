@@ -69,18 +69,18 @@ model Event {
 
 model Donation {
   id            Int            @id @default(autoincrement())
-  donorId       Int
+  donorId       Int?
   amount        Decimal        @db.Decimal(10, 2)
   purpose       String?        @db.Text
-  anonymous     Boolean        @default(false)
   paymentMethod PaymentMethod
-  status        DonationStatus @default(pending)
-  transactionId String?        @unique @db.VarChar(255)
+  date          DateTime       @default(now())
+  location      String?        @db.VarChar(255)
+  bankName      String?        @db.VarChar(100)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
   // Relations
-  donor User @relation(fields: [donorId], references: [id], onDelete: Cascade)
+  donor User? @relation(fields: [donorId], references: [id], onDelete: Cascade)
 
   @@map("donations")
 }
