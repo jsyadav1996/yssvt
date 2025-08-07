@@ -71,11 +71,19 @@ export function Layout({ children }: Page) {
           {/* Show user avatar only for authenticated users */}
           {user && (
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-primary-600">
-                  {user?.firstName?.charAt(0)?.toUpperCase() + user?.lastName?.charAt(0)?.toUpperCase()}
-                </span>
-              </div>
+              {user.profileImagePath ? (
+                <img 
+                  src={user.profileImagePath} 
+                  alt={`${user.firstName} ${user.lastName}`}
+                  className="w-10 h-10 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-primary-200"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-primary-600">
+                    {user?.firstName?.charAt(0)?.toUpperCase() + user?.lastName?.charAt(0)?.toUpperCase()}
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>

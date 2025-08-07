@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { userService } from '../services/userService';
-import { prisma } from '../lib/prisma';
+import { uploadToSupabase, deleteFromSupabase } from '../middleware/upload';
 
 // Define UserRole enum locally to match Prisma schema
 enum UserRole {
@@ -45,77 +45,17 @@ export const getAllUsers = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const search = req.query.search as string || '';
     const role = req.query.role as string || '';
-    const isActive = req.query.isActive as string || '';
 
-    // Calculate skip value for pagination
-    const skip = (page - 1) * limit;
-
-    // Build search query
-    const searchQuery: any = {};
-    
-    if (search) {
-      const searchRegex = new RegExp(search, 'i');
-      searchQuery.$or = [
-        { firstName: searchRegex },
-        { lastName: searchRegex },
-        { email: searchRegex },
-        { phone: searchRegex }
-      ];
-    }
-
-    if (role) {
-      searchQuery.role = role;
-    }
-
-    if (isActive !== '') {
-      searchQuery.isActive = isActive === 'true';
-    }
-
-    // Get total count for pagination
-    const totalUsers = await prisma.user.count({ where: searchQuery });
-    
-    // Get users with pagination and search
-    const users = await prisma.user.findMany({
-      where: searchQuery,
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        address: true,
-        createdAt: true,
-        updatedAt: true
-      }
+    const result = await userService.getUsers({
+      search,
+      role: role as any,
+      page,
+      limit
     });
-
-    // Calculate pagination info
-    const totalPages = Math.ceil(totalUsers / limit);
-    const hasNextPage = page < totalPages;
-    const hasPrevPage = page > 1;
 
     res.json({
       success: true,
-      data: { 
-        users,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalUsers,
-          hasNextPage,
-          hasPrevPage,
-          limit
-        },
-        filters: {
-          search,
-          role,
-          isActive
-        }
-      }
+      data: result
     });
   } catch (error) {
     console.error('Get users error:', error);
@@ -131,20 +71,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 export const getUserById = async (req: Request, res: Response) => {
   console.log('getUserById', req.params.id)
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: parseInt(req.params.id) },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        address: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    });
+    const user = await userService.findUserById(parseInt(req.params.id));
     
     if (!user) {
       return res.status(404).json({
@@ -166,55 +93,13 @@ export const getUserById = async (req: Request, res: Response) => {
   }
 };
 
-// @desc    Update user profile
-// @access  Private
-export const updateProfile = async (req: AuthRequest, res: Response) => {
-  try {
-    const { firstName, lastName, phone, address } = req.body;
-    const updateFields: any = {};
-    
-    if (firstName) updateFields.firstName = firstName;
-    if (lastName) updateFields.lastName = lastName;
-    if (phone) updateFields.phone = phone;
-    if (address) updateFields.address = address;
-
-    const user = await prisma.user.update({
-      where: { id: parseInt(req.user?.id) },
-      data: updateFields,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        address: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    });
-
-    res.json({
-      success: true,
-      message: 'Profile updated successfully',
-      data: user
-    });
-  } catch (error) {
-    console.error('Update profile error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    });
-  }
-}; 
-
 // @desc    Register a new user
 // @access  Public
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, email, password, phone, address, role } = req.body;
+    const { firstName, lastName, email, password, phone, address, city, state, pincode, dob, gender, occupationField, occupation, role } = req.body;
     if (email) {
-      const existingUser = await prisma.user.findUnique({ where: { email } });
+      const existingUser = await userService.findUserByEmail(email);
       if (existingUser) {
         return res.status(400).json({
           success: false,
@@ -222,44 +107,50 @@ export const createUser = async (req: Request, res: Response) => {
         });
       }
     }
-    // Create new user
-    const user = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        email,
-        password,
-        phone,
-        address,
-        role: role || UserRole.MEMBER
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        address: true,
-        createdAt: true,
-        updatedAt: true
+
+    // Handle image upload
+    let profileImagePath = null;
+    if (req.file) {
+      try {
+        // Upload new image to profiles bucket
+        const uploadedFile = await uploadToSupabase(req.file, 'profiles');
+        profileImagePath = uploadedFile.url;
+      } catch (uploadError) {
+        console.error('Image upload error:', uploadError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload image'
+        });
       }
-    });
+    }
+
+    // Build create object
+    const createFields: any = {};
+    if (firstName !== undefined) createFields.firstName = firstName;
+    if (lastName !== undefined) createFields.lastName = lastName;
+    if (email !== undefined) createFields.email = email;
+    if (password !== undefined) createFields.password = password;
+    if (phone !== undefined) createFields.phone = phone;
+    if (address !== undefined) createFields.address = address;
+    if (city !== undefined) createFields.city = city;
+    if (state !== undefined) createFields.state = state;
+    if (pincode !== undefined) createFields.pincode = pincode;
+    if (dob !== undefined) createFields.dob = dob ? new Date(dob) : null;
+    if (gender !== undefined) createFields.gender = gender;
+    if (occupationField !== undefined) createFields.occupationField = occupationField || null;
+    if (occupation !== undefined) createFields.occupation = occupation || null;
+    if (profileImagePath) {
+      createFields.profileImagePath = profileImagePath;
+    }
+    if (role !== undefined) createFields.role = role;
+
+    // Create new user
+    const createdUser = await userService.createUser(createFields);
 
     return res.status(201).json({
       success: true,
       message: 'User created successfully',
-      data: {
-        user: {
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role,
-          phone: user.phone,
-          address: user.address
-        }
-      }
+      data: createdUser
     });
   } catch (error) {
     console.error('User create error:', error);
@@ -283,38 +174,11 @@ export const searchUsers = async (req: Request, res: Response) => {
       });
     }
 
-    const searchRegex = new RegExp(searchText.trim(), 'i'); // Case-insensitive search
-    
-    const users = await prisma.user.findMany({
-      where: {
-        OR: [
-          { firstName: { contains: searchText.trim(), mode: 'insensitive' } },
-          { lastName: { contains: searchText.trim(), mode: 'insensitive' } },
-          { email: { contains: searchText.trim(), mode: 'insensitive' } },
-          { phone: { contains: searchText.trim(), mode: 'insensitive' } }
-        ]
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        address: true,
-        createdAt: true,
-        updatedAt: true
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    const result = await userService.searchUsers(searchText.trim());
 
     return res.json({
       success: true,
-      data: { 
-        users,
-        total: users.length,
-        searchText: searchText.trim()
-      }
+      data: result
     });
   } catch (error) {
     console.error('Search users error:', error);
@@ -330,10 +194,10 @@ export const searchUsers = async (req: Request, res: Response) => {
 export const updateUser = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { firstName, lastName, email, phone, address, role } = req.body;
+    const { firstName, lastName, email, password, phone, address, city, state, pincode, dob, gender, occupationField, occupation, role } = req.body;
     
     // Check if user exists
-    const existingUser = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+    const existingUser = await userService.findUserById(parseInt(id));
     if (!existingUser) {
       return res.status(404).json({
         success: false,
@@ -343,46 +207,60 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
 
     // Check if email is being updated and if it's already taken
     if (email && email !== existingUser.email) {
-      const emailExists = await prisma.user.findFirst({ 
-        where: { 
-          email, 
-          id: { not: parseInt(id) } 
-        } 
-      });
-      if (emailExists) {
+      const emailExists = await userService.findUserByEmail(email);
+      if (emailExists && emailExists.id !== parseInt(id)) {
         return res.status(400).json({
           success: false,
           message: 'Email already exists'
         });
       }
     }
-    console.log('email', email)
+
+    // Handle image upload
+    let profileImagePath = existingUser.profileImagePath;
+    if (req.file) {
+      try {
+        // Delete old profile image if exists
+        if (existingUser.profileImagePath) {
+          const oldFilename = existingUser.profileImagePath.split('/').pop();
+          if (oldFilename) {
+            await deleteFromSupabase(oldFilename, 'profiles');
+          }
+        }
+        // Upload new image to profiles bucket
+        const uploadedFile = await uploadToSupabase(req.file, 'profiles');
+        profileImagePath = uploadedFile.url;
+      } catch (uploadError) {
+        console.error('Image upload error:', uploadError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload image'
+        });
+      }
+    }
+
     // Build update object
     const updateFields: any = {};
     if (firstName !== undefined) updateFields.firstName = firstName;
     if (lastName !== undefined) updateFields.lastName = lastName;
     if (email !== undefined) updateFields.email = email;
+    if (password !== undefined) updateFields.password = password;
     if (phone !== undefined) updateFields.phone = phone;
     if (address !== undefined) updateFields.address = address;
+    if (city !== undefined) updateFields.city = city;
+    if (state !== undefined) updateFields.state = state;
+    if (pincode !== undefined) updateFields.pincode = pincode;
+    if (dob !== undefined) updateFields.dob = dob ? new Date(dob) : null;
+    if (gender !== undefined) updateFields.gender = gender;
+    if (occupationField !== undefined) updateFields.occupationField = occupationField || null;
+    if (occupation !== undefined) updateFields.occupation = occupation || null;
     if (role !== undefined) updateFields.role = role;
+    if (profileImagePath !== existingUser.profileImagePath) {
+      updateFields.profileImagePath = profileImagePath;
+    }
 
-    console.log('updateFields', updateFields)
     // Update user
-    const updatedUser = await prisma.user.update({
-      where: { id: parseInt(id) },
-      data: updateFields,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        address: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    });
+    const updatedUser = await userService.updateUser(parseInt(id), updateFields);
 
     return res.json({
       success: true,
@@ -405,7 +283,7 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     
     // Check if user exists
-    const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+    const user = await userService.findUserById(parseInt(id));
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -422,7 +300,7 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     }
 
     // Delete user
-    await prisma.user.delete({ where: { id: parseInt(id) } });
+    await userService.deleteUser(parseInt(id));
 
     return res.json({
       success: true,
@@ -433,6 +311,85 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Server error during user deletion'
+    });
+  }
+};
+
+// @desc    Update user profile with image
+// @access  Private
+export const updateProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const { firstName, lastName, password, phone, address, city, state, pincode, dob, gender, occupationField, occupation } = req.body;
+    const userId = parseInt(req.user?.id);
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not authenticated'
+      });
+    }
+
+    // Check if user exists
+    const existingUser = await userService.findUserById(userId);
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Handle image upload
+    let profileImagePath = existingUser.profileImagePath;
+    if (req.file) {
+      try {
+        // Delete old profile image if exists
+        if (existingUser.profileImagePath) {
+          const oldFilename = existingUser.profileImagePath.split('/').pop();
+          if (oldFilename) {
+            await deleteFromSupabase(oldFilename, 'profiles');
+          }
+        }
+        // Upload new image to profiles bucket
+        const uploadedFile = await uploadToSupabase(req.file, 'profiles');
+        profileImagePath = uploadedFile.url;
+      } catch (uploadError) {
+        console.error('Image upload error:', uploadError);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload image'
+        });
+      }
+    }
+    // Build update object
+    const updateFields: any = {};
+    if (firstName !== undefined) updateFields.firstName = firstName;
+    if (lastName !== undefined) updateFields.lastName = lastName;
+    if (password !== undefined) updateFields.password = password;
+    if (phone !== undefined) updateFields.phone = phone;
+    if (address !== undefined) updateFields.address = address;
+    if (city !== undefined) updateFields.city = city;
+    if (state !== undefined) updateFields.state = state;
+    if (pincode !== undefined) updateFields.pincode = pincode;
+    if (dob !== undefined) updateFields.dob = dob ? new Date(dob) : null;
+    if (gender !== undefined) updateFields.gender = gender;
+    if (occupationField !== undefined) updateFields.occupationField = occupationField || null;
+    if (occupation !== undefined) updateFields.occupation = occupation || null;
+    if (profileImagePath !== existingUser.profileImagePath) {
+      updateFields.profileImagePath = profileImagePath;
+    }
+    // Update user profile
+    const updatedUser = await userService.updateProfile(userId, updateFields);
+
+    return res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: updatedUser
+    });
+  } catch (error) {
+    console.error('Update profile with image error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during profile update'
     });
   }
 };

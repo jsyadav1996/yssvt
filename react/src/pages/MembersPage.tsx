@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { apiClient, User, PaginationInfo } from '@/lib/api'
-import { Search, Plus, Users, MapPin, ChevronLeft, ChevronRight, Edit } from 'lucide-react'
+import { Search, Plus, Users, MapPin, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react'
 
 export default function MembersPage() {
   const navigate = useNavigate()
@@ -74,6 +74,25 @@ export default function MembersPage() {
       month: 'short',
       day: 'numeric'
     })
+  }
+
+  const handleDeleteMember = async (memberId: string, memberName: string) => {
+    if (!window.confirm(`Are you sure you want to delete ${memberName}? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const response = await apiClient.deleteUser(memberId)
+      
+      if (response.success) {
+        // Refresh the current page
+        fetchMembers(pagination?.currentPage || 1, searchTerm.trim() || undefined)
+      } else {
+        alert(response.message || 'Failed to delete member')
+      }
+    } catch (error) {
+      alert('Network error occurred while deleting member')
+    }
   }
 
   if (loading && members.length === 0) {
@@ -181,27 +200,52 @@ export default function MembersPage() {
                 key={member.id}
                 className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow relative group"
               >
-                {/* Edit Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    navigate(`/members/${member.id}/edit`)
-                  }}
-                  className="absolute top-3 sm:top-4 right-3 sm:right-4 p-1 sm:p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                  title="Edit member"
-                >
-                  <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                </button>
+                {/* Action Buttons */}
+                <div className="absolute top-3 sm:top-4 right-3 sm:right-4 flex gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigate(`/members/${member.id}/edit`)
+                    }}
+                    className="p-1 sm:p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                    title="Edit member"
+                  >
+                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                  </button>
+                  
+                  {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && currentUser?.id !== member.id && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeleteMember(member.id, `${member.firstName} ${member.lastName}`)
+                      }}
+                      className="p-1 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete member"
+                    >
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </button>
+                  )}
+                </div>
 
                 <div 
                   className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4 cursor-pointer"
                   onClick={() => navigate(`/members/${member.id}`)}
                 >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center">
-                    <span className="text-primary-600 font-semibold text-sm sm:text-base">
-                      {member.firstName.charAt(0)}{member.lastName.charAt(0)}
-                    </span>
-                  </div>
+                  
+                  {member.profileImagePath ? (
+                    <img 
+                      src={member.profileImagePath} 
+                      alt={`${member.firstName} ${member.lastName}`}
+                      className="w-10 h-10 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-primary-200"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                      <span className="text-primary-600 font-semibold text-sm sm:text-base">
+                        {member.firstName.charAt(0)}{member.lastName.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                  
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
                       {member.firstName} {member.lastName}

@@ -16,6 +16,105 @@ enum UserRole {
   admin
 }
 
+enum Gender {
+  male
+  female
+}
+
+enum OccupationField {
+  agriculture_and_allied
+  industry_and_manufacturing
+  trade_and_business
+  government_and_public_services
+  education_and_research
+  healthcare
+  media_and_entertainment
+  corporate_sector
+  legal_and_judiciary
+  skilled_services
+  transport_and_logistics
+  hospitality_and_tourism
+  freelancing_and_emerging_roles
+}
+
+enum Occupation {
+  // Agriculture and Allied
+  farmer
+  fisherman
+  livestock_rearer
+  horticulturist
+  
+  // Industry and Manufacturing
+  factory_worker
+  industrialist
+  mechanic
+  welder
+  carpenter
+  plumber
+  
+  // Trade and Business
+  shopkeeper
+  entrepreneur
+  wholesale_trader
+  retail_salesperson
+  small_business_owner
+  
+  // Government and Public Services
+  government_employee
+  police_officer
+  soldier
+  postman
+  clerk
+  
+  // Education and Research
+  teacher
+  professor
+  researcher
+  tutor
+  
+  // Healthcare
+  doctor
+  nurse
+  pharmacist
+  medical_technician
+  
+  // Media and Entertainment
+  media_person_journalist
+  actor
+  singer
+  photographer
+  dancer
+  
+  // Corporate Sector
+  engineer_it_civil_etc
+  accountant
+  hr_professional
+  marketing_executive
+  data_analyst
+  
+  // Legal and Judiciary
+  lawyer
+  judge
+  
+  // Skilled Services
+  barber
+  tailor
+  cobbler
+  domestic_helper
+  
+  // Transport and Logistics
+  driver
+  courier_delivery_agent
+  
+  // Hospitality and Tourism
+  chef
+  hotel_manager
+  tour_guide
+  
+  // Freelancing and Emerging Roles
+  digital_marketer
+}
+
 enum Type {
   student
   working
@@ -27,22 +126,24 @@ enum PaymentMethod {
   cash
 }
 
-enum DonationStatus {
-  pending
-  completed
-  failed
-}
-
 model User {
   id            Int      @id @default(autoincrement())
   type          Type? @default(working)
   firstName     String   @db.VarChar(50)
   lastName      String   @db.VarChar(50)
+  profileImagePath      String?   @db.VarChar(255)
   email         String?  @unique @db.VarChar(255)
+  dob           DateTime?
   password      String?  @db.VarChar(255)
   role          UserRole? @default(member)
+  gender        Gender?
   phone         String?  @db.VarChar(20)
   address       String?  @db.Text
+  city          String?  @db.VarChar(50)
+  state         String?  @db.VarChar(50)
+  pincode       String?  @db.VarChar(50)
+  occupationField    OccupationField?
+  occupation    Occupation?
   createdAt     DateTime @default(now())
   updatedAt     DateTime? @updatedAt
 

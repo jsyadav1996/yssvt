@@ -30,15 +30,14 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    // Create new user
-    const user = await userService.createUser({
+    // Create new user with basic fields only
+    const user = await userService.register({
       firstName,
       lastName,
       email,
       password,
       phone,
-      address,
-      role: 'member'
+      address
     });
 
     // Generate token
@@ -69,6 +68,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Check if user exists
     const user = await userService.findUserByEmail(email);
+    console.log('user', user)
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -77,7 +77,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Check password
-    const isPasswordValid = await userService.comparePassword(user.id, password);
+    const isPasswordValid = await userService.comparePassword(user, password);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,

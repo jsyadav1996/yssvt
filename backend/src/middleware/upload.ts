@@ -7,16 +7,16 @@ const supabaseKey = process.env.SUPABASE_KEY || '';
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Helper function to upload file to Supabase
-export const uploadToSupabase = async (file: Express.Multer.File) => {
+// Helper function to upload file to Supabase (for event media)
+export const uploadToSupabase = async (file: Express.Multer.File, bucket: string = 'yssvt') => {
   try {
     // Generate unique filename with timestamp
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const filename = file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname);
     
-    // Upload to Supabase storage
+    // Upload to Supabase storage (yssvt bucket for events)
     const { data, error } = await supabase.storage
-      .from('yssvt')
+      .from(bucket)
       .upload(filename, file.buffer, {
         contentType: file.mimetype,
         cacheControl: '3600'
@@ -28,7 +28,7 @@ export const uploadToSupabase = async (file: Express.Multer.File) => {
 
     // Get public URL
     const { data: urlData } = supabase.storage
-      .from('yssvt')
+      .from(bucket)
       .getPublicUrl(filename);
 
     return {
@@ -43,11 +43,11 @@ export const uploadToSupabase = async (file: Express.Multer.File) => {
   }
 };
 
-// Helper function to delete file from Supabase storage
-export const deleteFromSupabase = async (filename: string) => {
+// Helper function to delete file from Supabase storage (for event media)
+export const deleteFromSupabase = async (filename: string, bucket: string = 'yssvt') => {
   try {
     const { error } = await supabase.storage
-      .from('yssvt')
+      .from(bucket)
       .remove([filename]);
 
     if (error) {

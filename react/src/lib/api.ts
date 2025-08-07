@@ -33,6 +33,14 @@ interface User {
   email: string
   phone?: string
   address?: string
+  city?: string
+  state?: string
+  pincode?: string
+  dob?: string
+  gender?: 'male' | 'female'
+  profileImagePath?: string
+  occupationField?: 'agriculture_and_allied' | 'industry_and_manufacturing' | 'trade_and_business' | 'government_and_public_services' | 'education_and_research' | 'healthcare' | 'media_and_entertainment' | 'corporate_sector' | 'legal_and_judiciary' | 'skilled_services' | 'transport_and_logistics' | 'hospitality_and_tourism' | 'freelancing_and_emerging_roles'
+  occupation?: 'farmer' | 'fisherman' | 'livestock_rearer' | 'horticulturist' | 'factory_worker' | 'industrialist' | 'mechanic' | 'welder' | 'carpenter' | 'plumber' | 'shopkeeper' | 'entrepreneur' | 'wholesale_trader' | 'retail_salesperson' | 'small_business_owner' | 'government_employee' | 'police_officer' | 'soldier' | 'postman' | 'clerk' | 'teacher' | 'professor' | 'researcher' | 'tutor' | 'doctor' | 'nurse' | 'pharmacist' | 'medical_technician' | 'media_person_journalist' | 'actor' | 'singer' | 'photographer' | 'dancer' | 'engineer_it_civil_etc' | 'accountant' | 'hr_professional' | 'marketing_executive' | 'data_analyst' | 'lawyer' | 'judge' | 'barber' | 'tailor' | 'cobbler' | 'domestic_helper' | 'driver' | 'courier_delivery_agent' | 'chef' | 'hotel_manager' | 'tour_guide' | 'digital_marketer'
   role: 'member' | 'manager' | 'admin'
   createdAt: string
   updatedAt: string
@@ -43,6 +51,13 @@ interface UserProfile {
   lastName: string
   phone?: string
   address?: string
+  city?: string
+  state?: string
+  pincode?: string
+  dob?: string
+  gender?: 'male' | 'female'
+  occupationField?: 'agriculture_and_allied' | 'industry_and_manufacturing' | 'trade_and_business' | 'government_and_public_services' | 'education_and_research' | 'healthcare' | 'media_and_entertainment' | 'corporate_sector' | 'legal_and_judiciary' | 'skilled_services' | 'transport_and_logistics' | 'hospitality_and_tourism' | 'freelancing_and_emerging_roles'
+  occupation?: 'farmer' | 'fisherman' | 'livestock_rearer' | 'horticulturist' | 'factory_worker' | 'industrialist' | 'mechanic' | 'welder' | 'carpenter' | 'plumber' | 'shopkeeper' | 'entrepreneur' | 'wholesale_trader' | 'retail_salesperson' | 'small_business_owner' | 'government_employee' | 'police_officer' | 'soldier' | 'postman' | 'clerk' | 'teacher' | 'professor' | 'researcher' | 'tutor' | 'doctor' | 'nurse' | 'pharmacist' | 'medical_technician' | 'media_person_journalist' | 'actor' | 'singer' | 'photographer' | 'dancer' | 'engineer_it_civil_etc' | 'accountant' | 'hr_professional' | 'marketing_executive' | 'data_analyst' | 'lawyer' | 'judge' | 'barber' | 'tailor' | 'cobbler' | 'domestic_helper' | 'driver' | 'courier_delivery_agent' | 'chef' | 'hotel_manager' | 'tour_guide' | 'digital_marketer'
 }
 
 // Event interfaces
@@ -159,6 +174,43 @@ class ApiClient {
     }
   }
 
+  private async formRequest<T>(endpoint: string, formData: FormData, options: RequestInit = {}): Promise<ApiResponse<T>> {
+    // Import auth store dynamically to avoid circular dependency
+    const { useAuthStore } = await import('@/store/auth')
+    const token = useAuthStore.getState().token
+    
+    const config: RequestInit = {
+      method: 'POST', // Default method for form requests
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+        // Don't set Content-Type for FormData - let the browser set it with boundary
+        ...options.headers,
+      },
+      body: formData,
+      ...options,
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}${endpoint}`, config)
+      const data = await response.json()
+      
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data.message || 'Request failed',
+          errors: data.errors
+        }
+      }
+      
+      return data
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Network error'
+      }
+    }
+  }
+
   // Auth endpoints
   async getCurrentUser(): Promise<ApiResponse<User>> {
     return this.request('/users/me')
@@ -196,10 +248,9 @@ class ApiClient {
     return this.request(`/users/${id}`)
   }
 
-  async updateProfile(data: UserProfile): Promise<ApiResponse<{ user: User }>> {
-    return this.request('/users/profile', {
-      method: 'PUT',
-      body: JSON.stringify(data)
+  async updateProfile(formData: FormData): Promise<ApiResponse<User>> {
+    return this.formRequest('/users/profile', formData, {
+      method: 'PUT'
     })
   }
 
@@ -210,17 +261,15 @@ class ApiClient {
     })
   }
 
-  async createUser(data: Partial<User>): Promise<ApiResponse<{ user: User }>> {
-    return this.request('/users', {
-      method: 'POST',
-      body: JSON.stringify(data)
+  async createUser(formData: FormData): Promise<ApiResponse<User>> {
+    return this.formRequest('/users', formData, {
+      method: 'POST'
     })
   }
 
-  async updateUser(id: bigint, data: Partial<User>): Promise<ApiResponse<{ user: User }>> {
-    return this.request(`/users/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
+  async updateUser(id: bigint, formData: FormData): Promise<ApiResponse<User>> {
+    return this.formRequest(`/users/${id}`, formData, {
+      method: 'PUT'
     })
   }
 
@@ -247,38 +296,9 @@ class ApiClient {
   }
 
   async createEventWithImages(formData: FormData): Promise<ApiResponse<{ event: Event }>> {
-    // Import auth store dynamically to avoid circular dependency
-    const { useAuthStore } = await import('@/store/auth')
-    const token = useAuthStore.getState().token
-    
-    const config: RequestInit = {
-      method: 'POST',
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-        // Don't set Content-Type for FormData - let the browser set it with boundary
-      },
-      body: formData
-    }
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/events`, config)
-      const data = await response.json()
-      
-      if (!response.ok) {
-        return {
-          success: false,
-          message: data.message || 'Request failed',
-          errors: data.errors
-        }
-      }
-      
-      return data
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Network error'
-      }
-    }
+    return this.formRequest('/events', formData, {
+      method: 'POST'
+    })
   }
 
   async updateEvent(id: string, data: Partial<CreateEventData>): Promise<ApiResponse<{ event: Event }>> {
@@ -289,38 +309,9 @@ class ApiClient {
   }
 
   async updateEventWithImages(id: string, formData: FormData): Promise<ApiResponse<{ event: Event }>> {
-    // Import auth store dynamically to avoid circular dependency
-    const { useAuthStore } = await import('@/store/auth')
-    const token = useAuthStore.getState().token
-    
-    const config: RequestInit = {
-      method: 'PUT',
-      headers: {
-        ...(token && { Authorization: `Bearer ${token}` }),
-        // Don't set Content-Type for FormData - let the browser set it with boundary
-      },
-      body: formData
-    }
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/events/${id}`, config)
-      const data = await response.json()
-      
-      if (!response.ok) {
-        return {
-          success: false,
-          message: data.message || 'Request failed',
-          errors: data.errors
-        }
-      }
-      
-      return data
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Network error'
-      }
-    }
+    return this.formRequest(`/events/${id}`, formData, {
+      method: 'PUT'
+    })
   }
 
   async deleteEvent(id: string): Promise<ApiResponse<{ message: string }>> {

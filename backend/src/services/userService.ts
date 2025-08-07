@@ -9,10 +9,18 @@ type User = {
   firstName: string
   lastName: string
   email: string | null
-  password: string | null
+  password?: string | null
   role: UserRole | null
   phone: string | null
   address: string | null
+  city: string | null
+  state: string | null
+  pincode: string | null
+  dob: Date | null
+  gender: string | null
+  profileImagePath: string | null
+  occupationField: string | null
+  occupation: string | null
   createdAt: Date
   updatedAt: Date | null
 }
@@ -21,8 +29,24 @@ export interface CreateUserData {
   firstName: string
   lastName: string
   email: string
-  password: string
+  password?: string
   role?: UserRole
+  phone?: string
+  dob?: Date | null
+  gender?: string
+  address?: string
+  city?: string
+  state?: string
+  pincode?: string
+  occupationField?: string
+  occupation?: string
+}
+
+export interface RegisterUserData {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
   phone?: string
   address?: string
 }
@@ -31,8 +55,17 @@ export interface UpdateUserData {
   firstName?: string
   lastName?: string
   email?: string
+  password?: string
+  role?: UserRole
   phone?: string
+  dob?: Date | null
+  gender?: string
   address?: string
+  city?: string
+  state?: string
+  pincode?: string
+  occupationField?: string
+  occupation?: string
 }
 
 export interface UserFilters {
@@ -42,26 +75,62 @@ export interface UserFilters {
   limit?: number
 }
 
+const userSelectWithoutPassword = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  role: true,
+  phone: true,
+  dob: true,
+  gender: true,
+  address: true,
+  city: true,
+  state: true,
+  pincode: true,
+  profileImagePath: true,
+  occupationField: true,
+  occupation: true,
+  createdAt: true,
+  updatedAt: true
+};
+
 export class UserService {
   async createUser(data: CreateUserData): Promise<Omit<User, 'password'>> {
-    const hashedPassword = await bcrypt.hash(data.password, 12)
+    console.log('data', data)
+    
+    // Handle empty email string - convert to null
+    const email = data.email && data.email.trim() !== '' ? data.email.trim() : null;
+    
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 12)
+    }
     
     const user = await prisma.user.create({
       data: {
         ...data,
-        password: hashedPassword
+        email
+      } as any,
+      select: userSelectWithoutPassword
+    })
+    
+    return user
+  }
+
+  async register(data: RegisterUserData): Promise<Omit<User, 'password'>> {
+    const hashedPassword = await bcrypt.hash(data.password, 12)
+    
+    const user = await prisma.user.create({
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: hashedPassword,
+        phone: data.phone,
+        address: data.address,
+        role: 'member' // Default role for registration
       },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        address: true,
-        createdAt: true,
-        updatedAt: true
-      }
+      select: userSelectWithoutPassword
     })
     
     return user
@@ -70,41 +139,31 @@ export class UserService {
   async findUserById(id: number): Promise<Omit<User, 'password'> | null> {
     return prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        address: true,
-        createdAt: true,
-        updatedAt: true
-      }
+      select: userSelectWithoutPassword
     })
   }
 
   async findUserByEmail(email: string): Promise<User | null> {
-    return prisma.user.findUnique({
-      where: { email }
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { ...userSelectWithoutPassword, password: true }
     })
+    return user
   }
 
   async updateUser(id: number, data: UpdateUserData): Promise<Omit<User, 'password'>> {
+    // Handle empty email string - convert to null
+    const email = data.email && data.email.trim() !== '' ? data.email.trim() : null;
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 12)
+    }
     const user = await prisma.user.update({
       where: { id },
-      data,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        address: true,
-        createdAt: true,
-        updatedAt: true
-      }
+      data: {
+        ...data,
+        email
+      } as any,
+      select: userSelectWithoutPassword
     })
     
     return user
@@ -148,6 +207,12 @@ export class UserService {
           role: true,
           phone: true,
           address: true,
+          city: true,
+          state: true,
+          pincode: true,
+          profileImagePath: true,
+          occupationField: true,
+          occupation: true,
           createdAt: true,
           updatedAt: true
         }
@@ -176,15 +241,60 @@ export class UserService {
     }
   }
 
-  async comparePassword(userId: number, candidatePassword: string): Promise<boolean> {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { password: true }
-    })
-    
+  async comparePassword(user: User, candidatePassword: string): Promise<boolean> {    
     if (!user || !user.password) return false
     
     return bcrypt.compare(candidatePassword, user.password)
+  }
+
+  async searchUsers(searchText: string) {
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { firstName: { contains: searchText, mode: 'insensitive' } },
+          { lastName: { contains: searchText, mode: 'insensitive' } },
+          { email: { contains: searchText, mode: 'insensitive' } },
+          { phone: { contains: searchText, mode: 'insensitive' } }
+        ]
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        address: true,
+        city: true,
+        state: true,
+        pincode: true,
+        profileImagePath: true,
+        occupationField: true,
+        occupation: true,
+        createdAt: true,
+        updatedAt: true
+      },
+      take: 10
+    })
+
+    return {
+      users,
+      total: users.length,
+      searchText
+    }
+  }
+
+  async updateProfile(userId: number, data: UpdateUserData): Promise<Omit<User, 'password'>> {
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 12)
+    }
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: data as any,
+      select: userSelectWithoutPassword
+    })
+    
+    return user
   }
 }
 

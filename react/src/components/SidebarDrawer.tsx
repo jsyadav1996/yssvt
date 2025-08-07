@@ -137,11 +137,19 @@ export function SidebarDrawer() {
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
           {user && (
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                <span className="text-primary-600 font-semibold text-sm sm:text-base">
-                  {user?.firstName?.charAt(0)?.toUpperCase() + user?.lastName?.charAt(0)?.toUpperCase()}
-                </span>
-              </div>
+              {user.profileImagePath ? (
+                <img 
+                  src={user.profileImagePath} 
+                  alt={`${user.firstName} ${user.lastName}`}
+                  className="w-10 h-10 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-primary-200"
+                />
+              ) : (
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                  <span className="text-primary-600 font-semibold text-sm sm:text-base">
+                    {user?.firstName?.charAt(0)?.toUpperCase() + user?.lastName?.charAt(0)?.toUpperCase()}
+                  </span>
+                </div>
+              )}
               <div>
                 <h2 className="font-semibold text-gray-900 text-sm sm:text-base">
                   {`${user?.firstName} ${user?.lastName}`}
