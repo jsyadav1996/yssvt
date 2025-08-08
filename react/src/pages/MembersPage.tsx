@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { apiClient, User, PaginationInfo } from '@/lib/api'
 import { Search, Plus, Users, MapPin, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react'
+import { useRoleCheck } from '@/utils/roleCheck'
+// useRoleCheck().isAdmin
 
 export default function MembersPage() {
   const navigate = useNavigate()
   const { user: currentUser } = useAuthStore()
+  const { isAdmin, isSystemAdmin } = useRoleCheck()
   const [members, setMembers] = useState<User[]>([])
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -153,7 +156,7 @@ export default function MembersPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Members</h1>
           <p className="text-sm sm:text-base text-gray-600">Manage community members</p>
         </div>
-        {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
+        {(isAdmin || isSystemAdmin) && (
           <button
             onClick={() => navigate('/members/add')}
             className="btn-primary flex items-center gap-2 text-sm sm:text-base"
@@ -202,18 +205,20 @@ export default function MembersPage() {
               >
                 {/* Action Buttons */}
                 <div className="absolute top-3 sm:top-4 right-3 sm:right-4 flex gap-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      navigate(`/members/${member.id}/edit`)
-                    }}
-                    className="p-1 sm:p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                    title="Edit member"
-                  >
-                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </button>
+                  {(isAdmin || isSystemAdmin) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        navigate(`/members/${member.id}/edit`)
+                      }}
+                      className="p-1 sm:p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                      title="Edit member"
+                    >
+                      <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </button>
+                  )}
                   
-                  {(currentUser?.role === 'admin' || currentUser?.role === 'manager') && currentUser?.id !== member.id && (
+                  {(isAdmin || isSystemAdmin) && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation()

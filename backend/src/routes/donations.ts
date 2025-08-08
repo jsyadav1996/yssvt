@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { getAllDonations, getUserDonations, createDonation, updateDonation, getDonationById, deleteDonation } from '../controllers/donationController';
-import { requireManager } from '../middleware/auth';
+import { authMiddleware, requireAdmin, requireMember } from '../middleware/auth';
 
 const router = Router();
 
@@ -21,17 +21,17 @@ const handleValidationErrors = (req: any, res: any, next: any) => {
 // @route   GET /api/donations
 // @desc    Get all donations (manager/admin only)
 // @access  Private
-router.get('/', requireManager, getAllDonations);
+router.get('/', authMiddleware, requireMember, getAllDonations);
 
 // @route   GET /api/donations/my
 // @desc    Get user's donations
 // @access  Private
-router.get('/my', getUserDonations);
+// router.get('/my', getUserDonations);
 
 // @route   GET /api/donations/:id
 // @desc    Get donation by ID
 // @access  Private
-router.get('/:id', [
+router.get('/:id', authMiddleware, requireMember, [
   param('id').isInt().withMessage('Invalid donation ID'),
   handleValidationErrors
 ], getDonationById);
@@ -39,8 +39,7 @@ router.get('/:id', [
 // @route   POST /api/donations
 // @desc    Create new donation
 // @access  Private
-router.post('/', [
-  requireManager,
+router.post('/', authMiddleware, requireAdmin, [
   body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
   body('purpose').optional().trim().isLength({ max: 500 }).withMessage('Purpose must be less than 500 characters'),
   body('paymentMethod').isIn(['online', 'cash']).withMessage('Invalid payment method'),
@@ -54,8 +53,7 @@ router.post('/', [
 // @route   PUT /api/donations/:id
 // @desc    Update donation
 // @access  Private
-router.put('/:id', [
-  requireManager,
+router.put('/:id', authMiddleware, requireAdmin, [
   param('id').isInt().withMessage('Invalid donation ID'),
   body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
   body('purpose').optional().trim().isLength({ max: 500 }).withMessage('Purpose must be less than 500 characters'),
@@ -70,8 +68,7 @@ router.put('/:id', [
 // @route   DELETE /api/donations/:id
 // @desc    Delete donation
 // @access  Private
-router.delete('/:id', [
-  requireManager,
+router.delete('/:id', authMiddleware, requireAdmin, [
   param('id').isInt().withMessage('Invalid donation ID'),
   handleValidationErrors
 ], deleteDonation);

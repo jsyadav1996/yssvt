@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth'
 import { apiClient, Donation } from '@/lib/api'
 import { Heart, Plus, IndianRupee, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useRoleCheck } from '@/utils/roleCheck'
 
 export default function DonationsPage() {
   const navigate = useNavigate()
-  const { user: currentUser } = useAuthStore()
+  const { isAdmin, isSystemAdmin } = useRoleCheck()
   const [donations, setDonations] = useState<Donation[]>([])
   const [totalDonationAmount, setTotalDonationAmount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
@@ -25,13 +25,7 @@ export default function DonationsPage() {
         setError(null)
         
         let response
-        if (currentUser?.role === 'admin' || currentUser?.role === 'manager') {
-          // Admins and managers see all donations
-          response = await apiClient.getAllDonations(currentPage, pageSize)
-        } else {
-          // Regular users see only their donations
-          response = await apiClient.getUserDonations(currentPage, pageSize)
-        }
+        response = await apiClient.getAllDonations(currentPage, pageSize)
         
         if (response.success && response.data) {
           setDonations(response.data.donations)
@@ -49,7 +43,7 @@ export default function DonationsPage() {
     }
 
     fetchDonations()
-  }, [currentUser?.role, currentPage])
+  }, [currentPage])
 
 
 
@@ -165,12 +159,6 @@ export default function DonationsPage() {
         
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 sm:p-6 text-center">
           <p className="text-red-600 mb-3 sm:mb-4 text-sm sm:text-base">{error}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="btn-primary text-sm sm:text-base"
-          >
-            Try Again
-          </button>
         </div>
       </div>
     )
@@ -184,13 +172,15 @@ export default function DonationsPage() {
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Donations</h1>
           <p className="text-sm sm:text-base text-gray-600">Manage community donations</p>
         </div>
-        <button
-          onClick={() => navigate('/donations/add')}
-          className="btn-primary flex items-center gap-2 text-sm sm:text-base"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Make Donation</span>
-        </button>
+        {(isAdmin || isSystemAdmin) && (
+          <button
+            onClick={() => navigate('/donations/add')}
+            className="btn-primary flex items-center gap-2 text-sm sm:text-base"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Make Donation</span>
+          </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -247,23 +237,25 @@ export default function DonationsPage() {
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={(e) => handleEdit(e, donation.id)}
-                    className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                    title="Edit donation"
-                  >
-                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </button>
-                  <button
-                    onClick={(e) => handleDelete(e, donation.id)}
-                    disabled={deletingId === donation.id}
-                    className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
-                    title="Delete donation"
-                  >
-                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </button>
-                </div>
+                {(isAdmin || isSystemAdmin) && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={(e) => handleEdit(e, donation.id)}
+                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      title="Edit donation"
+                    >
+                      <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(e, donation.id)}
+                      disabled={deletingId === donation.id}
+                      className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                      title="Delete donation"
+                    >
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
               
               {donation.donor && (
@@ -287,15 +279,6 @@ export default function DonationsPage() {
           <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
             No donations yet
           </h3>
-          <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-            Be the first to make a donation to support our community
-          </p>
-          <button
-            onClick={() => navigate('/donations/new')}
-            className="btn-primary text-sm sm:text-base"
-          >
-            Make First Donation
-          </button>
         </div>
       )}
 

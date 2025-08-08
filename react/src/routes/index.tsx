@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { useAuthStore } from '@/store/auth'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
@@ -23,30 +24,75 @@ export const navigationRoutes = [
   { path: '/dashboard', title: 'Dashboard', icon: '🏠', requiresAuth: true },
   { path: '/members', title: 'Members', icon: '👥', requiresAuth: true },
   { path: '/events', title: 'Events', icon: '📅', requiresAuth: false },
-  { path: '/donations', title: 'Donations', icon: '❤️', requiresAuth: false },
+  { path: '/donations', title: 'Donations', icon: '❤️', requiresAuth: true },
   { path: '/profile', title: 'Profile', icon: '👤', requiresAuth: true },
 ]
 
 export function AppRoutes() {
+  const { user } = useAuthStore()
+
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/members" element={<MembersPage />} />
-      <Route path="/members/add" element={<MemberAddPage />} />
-      <Route path="/members/:id" element={<MemberDetailPage />} />
-      <Route path="/members/:id/edit" element={<MemberEditPage />} />
+      <Route 
+        path="/login" 
+        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+      />
+      <Route 
+        path="/register" 
+        element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} 
+      />
+
+      {/* Public Routes */}
       <Route path="/events" element={<EventsPage />} />
-      <Route path="/events/add" element={<EventAddPage />} />
       <Route path="/events/:id" element={<EventDetailPage />} />
-      <Route path="/events/:id/edit" element={<EventEditPage />} />
-      <Route path="/donations" element={<DonationsPage />} />
-      <Route path="/donations/add" element={<DonationAddPage />} />
-      <Route path="/donations/:id" element={<DonationDetailPage />} />
-      <Route path="/donations/:id/edit" element={<DonationEditPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/members" element={<MembersPage />} />
+      
+      {/* Protected Routes - Check if user exists */}
+      <Route 
+        path="/dashboard" 
+        element={user ? <DashboardPage /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/members/add" 
+        element={user ? <MemberAddPage /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/members/:id" 
+        element={user ? <MemberDetailPage /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/members/:id/edit" 
+        element={user ? <MemberEditPage /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/events/add" 
+        element={user ? <EventAddPage /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/events/:id/edit" 
+        element={user ? <EventEditPage /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/donations" 
+        element={user ? <DonationsPage /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/donations/add" 
+        element={user ? <DonationAddPage /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/donations/:id/edit" 
+        element={user ? <DonationEditPage /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/donations/:id" 
+        element={user ? <DonationDetailPage /> : <Navigate to="/login" replace />} 
+      />
+      <Route 
+        path="/profile" 
+        element={user ? <ProfilePage /> : <Navigate to="/login" replace />} 
+      />
     </Routes>
   )
 } 

@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 import { prisma } from './lib/prisma';
 
 import { authRoutes, userRoutes, eventRoutes, donationRoutes } from './routes';
-import { errorHandler, authMiddleware } from './middleware';
+import { errorHandler } from './middleware';
 
 dotenv.config();
 
@@ -50,9 +50,9 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', authMiddleware, userRoutes);
-app.use('/api/events', authMiddleware, eventRoutes);
-app.use('/api/donations', authMiddleware, donationRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/donations', donationRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

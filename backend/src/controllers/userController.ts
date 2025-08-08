@@ -6,7 +6,8 @@ import { uploadToSupabase, deleteFromSupabase } from '../middleware/upload';
 enum UserRole {
   MEMBER = 'member',
   MANAGER = 'manager',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
+  SYSTEM_ADMIN = 'system_admin'
 }
 
 // Extend Request to include user

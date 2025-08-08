@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Edit, Trash2, IndianRupee, Calendar, MapPin, Building, User, CreditCard, DollarSign } from 'lucide-react'
 import { apiClient, Donation } from '@/lib/api'
+import { useRoleCheck } from '@/utils/roleCheck'
 
 const DonationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { isAdmin, isSystemAdmin } = useRoleCheck()
   const [donation, setDonation] = useState<Donation | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -161,29 +163,30 @@ const DonationDetailPage: React.FC = () => {
             <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Donation Details</h1>
-            <p className="text-sm sm:text-base text-gray-600">View donation information</p>
+            <h1 className="text-xl sm:text-xl font-bold text-gray-900">Donation Details</h1>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            onClick={handleEdit}
-            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
-            Edit
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
-            {deleting ? 'Deleting...' : 'Delete'}
-          </button>
-        </div>
+        {(isAdmin || isSystemAdmin) && (
+          <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              onClick={handleEdit}
+              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+              {deleting ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Error Message */}
@@ -203,7 +206,7 @@ const DonationDetailPage: React.FC = () => {
                 <IndianRupee className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
               </div>
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                <h2 className="text-2xl sm:text-2xl font-bold text-gray-900">
                   {formatCurrency(donation.amount)}
                 </h2>
                 <p className="text-sm sm:text-base text-gray-600">Donation Amount</p>

@@ -2,7 +2,7 @@ import { prisma } from '../lib/prisma'
 import bcrypt from 'bcryptjs'
 
 // Define types locally
-type UserRole = 'member' | 'manager' | 'admin'
+type UserRole = 'member' | 'manager' | 'admin' | 'system_admin'
 
 type User = {
   id: number

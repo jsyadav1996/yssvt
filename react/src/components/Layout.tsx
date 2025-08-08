@@ -11,51 +11,13 @@ interface Page {
 }
 
 export function Layout({ children }: Page) {
-  const { user, login, setLoading, updateUser } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const location = useLocation();
-
-  // Initialize authentication state on app load
-  useEffect(() => {
-    const initializeAuth = async () => {
-      // Check if we're in a browser environment
-      if (typeof window === 'undefined') {
-        return;
-      }
-      
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
-      
-      if (token && userData) {
-        try {
-          setLoading(true);
-          // Verify token is still valid by calling the API
-          const response = await apiClient.getCurrentUser();
-          if (response.success && response.data) {
-            login(response.data, token);
-          } else {
-            // Token is invalid, clear storage
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('auth-storage');
-          }
-        } catch (error) {
-          // Token is invalid, clear storage
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          localStorage.removeItem('auth-storage');
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    initializeAuth();
-  }, [login, setLoading]);
 
   useEffect(() => {
     const reloadProfile = async () => {
       const isReload = performance.navigation.type === 1 || (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming)?.type === "reload";
-      if (isReload) {
+      if (isReload && user) {
         // ✅ This block runs only on page reload
         const response = await apiClient.profile()
         updateUser(response.data as User)

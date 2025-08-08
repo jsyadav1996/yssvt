@@ -41,7 +41,7 @@ interface User {
   profileImagePath?: string
   occupationField?: 'agriculture_and_allied' | 'industry_and_manufacturing' | 'trade_and_business' | 'government_and_public_services' | 'education_and_research' | 'healthcare' | 'media_and_entertainment' | 'corporate_sector' | 'legal_and_judiciary' | 'skilled_services' | 'transport_and_logistics' | 'hospitality_and_tourism' | 'freelancing_and_emerging_roles'
   occupation?: 'farmer' | 'fisherman' | 'livestock_rearer' | 'horticulturist' | 'factory_worker' | 'industrialist' | 'mechanic' | 'welder' | 'carpenter' | 'plumber' | 'shopkeeper' | 'entrepreneur' | 'wholesale_trader' | 'retail_salesperson' | 'small_business_owner' | 'government_employee' | 'police_officer' | 'soldier' | 'postman' | 'clerk' | 'teacher' | 'professor' | 'researcher' | 'tutor' | 'doctor' | 'nurse' | 'pharmacist' | 'medical_technician' | 'media_person_journalist' | 'actor' | 'singer' | 'photographer' | 'dancer' | 'engineer_it_civil_etc' | 'accountant' | 'hr_professional' | 'marketing_executive' | 'data_analyst' | 'lawyer' | 'judge' | 'barber' | 'tailor' | 'cobbler' | 'domestic_helper' | 'driver' | 'courier_delivery_agent' | 'chef' | 'hotel_manager' | 'tour_guide' | 'digital_marketer'
-  role: 'member' | 'manager' | 'admin'
+  role: 'member' | 'manager' | 'admin' | 'system_admin'
   createdAt: string
   updatedAt: string
 }

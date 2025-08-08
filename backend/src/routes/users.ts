@@ -9,7 +9,7 @@ import { getAllUsers,
     getCurrentUser,
     updateProfile
   } from '../controllers/userController';
-import { requireManager, requireMember } from '../middleware/auth';
+import { authMiddleware, requireAdmin, requireMember } from '../middleware/auth';
 import { uploadSingleImage } from '../middleware/upload';
 
 const router = Router();
@@ -135,43 +135,43 @@ const validateUserPayload = [
 // @route   GET /api/users
 // @desc    Get all users (admin/manager only)
 // @access  Private
-router.get('/', requireMember, getAllUsers);
+router.get('/', authMiddleware, requireMember, getAllUsers);
 
 // @route   GET /api/users/me
 // @desc    Get current user
 // @access  Private
-router.get('/profile', getCurrentUser);
+router.get('/profile', authMiddleware, getCurrentUser);
 
 // @route   GET /api/users/:id
 // @desc    Get user by ID
 // @access  Private
-router.get('/:id', getUserById);
+router.get('/:id', authMiddleware, requireMember, getUserById);
 
 // @route   PUT /api/users/profile/image
 // @desc    Update user profile with image
 // @access  Private
-router.put('/profile', uploadSingleImage, validateUserPayload, handleValidationErrors, updateProfile);
+router.put('/profile', authMiddleware, uploadSingleImage, validateUserPayload, handleValidationErrors, updateProfile);
 
 // @route   POST /api/users
 // @desc    Create new user (admin only)
 // @access  Private
-router.post('/', requireManager, uploadSingleImage, validateUserPayload, handleValidationErrors, createUser);
+router.post('/', authMiddleware, requireAdmin, uploadSingleImage, validateUserPayload, handleValidationErrors, createUser);
 
 // @route   POST /api/users/search
 // @desc    Search users by firstName, lastName, email, or phone
 // @access  Private
-router.post('/search', [
+router.post('/search', authMiddleware, requireMember, [
   body('searchText').trim().isLength({ max: 50 }).withMessage('Search text must be less than 50 characters')
 ], handleValidationErrors, searchUsers);
 
 // @route   PUT /api/users/:id
 // @desc    Update user by ID (admin only)
 // @access  Private
-router.put('/:id', requireManager, uploadSingleImage, validateUserPayload, handleValidationErrors, updateUser);
+router.put('/:id', authMiddleware, requireAdmin, uploadSingleImage, validateUserPayload, handleValidationErrors, updateUser);
 
 // @route   DELETE /api/users/:id
 // @desc    Delete user by ID (admin only)
 // @access  Private
-router.delete('/:id', requireManager, deleteUser);
+router.delete('/:id', authMiddleware, requireAdmin, deleteUser);
 
 export default router; 

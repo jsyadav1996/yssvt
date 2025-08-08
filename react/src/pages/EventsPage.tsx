@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth'
 import { apiClient, Event } from '@/lib/api'
 import { Calendar, Plus, MapPin, Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useRoleCheck } from '@/utils/roleCheck'
 
 export default function EventsPage() {
   const navigate = useNavigate()
-  const { user: currentUser } = useAuthStore()
+  const { isAdmin, isSystemAdmin } = useRoleCheck()
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
@@ -58,9 +58,6 @@ export default function EventsPage() {
     
     setFilteredEvents(events)
   }, [events])
-
-  // Check if user can create events
-  const canCreateEvents = currentUser?.role === 'admin' || currentUser?.role === 'manager'
 
   // Check if there are any events
   const hasEvents = events && events.length > 0
@@ -183,7 +180,7 @@ export default function EventsPage() {
             {hasEvents ? `Manage ${eventCounts.total} community events` : 'Manage community events'}
           </p>
         </div>
-        {canCreateEvents && (
+        {(isAdmin || isSystemAdmin) && (
           <button
             onClick={() => navigate('/events/add')}
             className="btn-primary flex items-center gap-2 text-sm sm:text-base"
@@ -198,7 +195,7 @@ export default function EventsPage() {
 
       {/* Events List */}
       {hasEvents ? (
-        hasFilteredEvents ? (
+        hasFilteredEvents && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {filteredEvents.map((event) => (
               <div
@@ -208,22 +205,24 @@ export default function EventsPage() {
               >
                 <div className="flex items-start justify-between mb-3 sm:mb-4">
                   <h3 className="font-semibold text-gray-900 text-base sm:text-lg">{event.title}</h3>
-                  <div className="flex gap-1 sm:gap-2">
-                    <button
-                      onClick={(e) => handleEditEvent(event.id, e)}
-                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                      title="Edit event"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={(e) => handleDeleteEvent(event.id, e)}
-                      className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                      title="Delete event"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+                  {(isAdmin || isSystemAdmin) && (
+                    <div className="flex gap-1 sm:gap-2">
+                      <button
+                        onClick={(e) => handleEditEvent(event.id, e)}
+                        className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                        title="Edit event"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteEvent(event.id, e)}
+                        className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                        title="Delete event"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
                 
                 <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{event.description}</p>
@@ -243,26 +242,6 @@ export default function EventsPage() {
               </div>
             ))}
           </div>
-        ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-12 text-center">
-            <Calendar className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
-            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
-              No events found
-            </h3>
-            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-              There are no events currently. Try creating a new event.
-            </p>
-            <div className="flex justify-center gap-2 sm:gap-3">
-              {canCreateEvents && (
-                <button
-                  onClick={() => navigate('/events/add')}
-                  className="btn-primary text-sm sm:text-base"
-                >
-                  Create Event
-                </button>
-              )}
-            </div>
-          </div>
         )
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-12 text-center">
@@ -270,17 +249,6 @@ export default function EventsPage() {
           <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
             No events yet
           </h3>
-          <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-            Get started by creating your first community event
-          </p>
-          {canCreateEvents && (
-            <button
-              onClick={() => navigate('/events/add')}
-              className="btn-primary text-sm sm:text-base"
-            >
-              Create First Event
-            </button>
-          )}
         </div>
       )}
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { getAllEvents, getEventById, createEvent, updateEvent, deleteEvent, deleteEventMedia } from '../controllers/eventController';
-import { requireManager } from '../middleware/auth';
+import { authMiddleware, requireAdmin } from '../middleware/auth';
 import { uploadMultipleImages } from '../middleware/upload';
 
 const router = Router();
@@ -32,7 +32,7 @@ router.get('/:id', getEventById);
 // @route   POST /api/events
 // @desc    Create new event (manager/admin only)
 // @access  Private
-router.post('/', requireManager, uploadMultipleImages, [
+router.post('/', authMiddleware, requireAdmin, uploadMultipleImages, [
   body('title').trim().isLength({ min: 3, max: 100 }).withMessage('Title must be between 3 and 100 characters'),
   body('date').isISO8601().withMessage('Please provide a valid date'),
   handleValidationErrors
@@ -41,7 +41,7 @@ router.post('/', requireManager, uploadMultipleImages, [
 // @route   PUT /api/events/:id
 // @desc    Update event (manager/admin only)
 // @access  Private
-router.put('/:id', requireManager, uploadMultipleImages, [
+router.put('/:id', authMiddleware, requireAdmin, uploadMultipleImages, [
   body('title').optional().trim().isLength({ min: 3, max: 100 }),
   body('date').optional().isISO8601(),
   handleValidationErrors
@@ -50,11 +50,11 @@ router.put('/:id', requireManager, uploadMultipleImages, [
 // @route   DELETE /api/events/:id
 // @desc    Delete event (manager/admin only)
 // @access  Private
-router.delete('/:id', requireManager, deleteEvent);
+router.delete('/:id', authMiddleware, requireAdmin, deleteEvent);
 
 // @route   DELETE /api/events/media/:mediaId
 // @desc    Delete individual event media (manager/admin only)
 // @access  Private
-router.delete('/media/:mediaId', requireManager, deleteEventMedia);
+router.delete('/media/:mediaId', authMiddleware, requireAdmin, deleteEventMedia);
 
 export default router; 
