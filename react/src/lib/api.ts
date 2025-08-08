@@ -248,6 +248,12 @@ class ApiClient {
     return this.request(`/users/${id}`)
   }
 
+  async profile (): Promise<ApiResponse<User>> {
+    return this.request('/users/profile', {
+      method: 'GET'
+    })
+  }
+
   async updateProfile(formData: FormData): Promise<ApiResponse<User>> {
     return this.formRequest('/users/profile', formData, {
       method: 'PUT'

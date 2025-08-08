@@ -26,9 +26,10 @@ interface AuthRequest extends Request {
 // @access  Private
 export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   try {
+    const user = await userService.findUserById(parseInt(req.user.id));
     return res.status(200).json({
       success: true,
-      data: req.user
+      data: user
     });
   } catch (error) {
     console.error('Get current user error:', error);

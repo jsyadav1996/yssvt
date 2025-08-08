@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAuthStore } from '@/store/auth';
 import { useLocation } from 'react-router-dom';
 import { SidebarDrawer } from './SidebarDrawer';
-import { apiClient } from '@/lib/api';
+import { apiClient, User } from '@/lib/api';
 import { navigationRoutes } from '@/routes';
 
 
@@ -11,7 +11,7 @@ interface Page {
 }
 
 export function Layout({ children }: Page) {
-  const { user, login, setLoading } = useAuthStore();
+  const { user, login, setLoading, updateUser } = useAuthStore();
   const location = useLocation();
 
   // Initialize authentication state on app load
@@ -51,6 +51,18 @@ export function Layout({ children }: Page) {
 
     initializeAuth();
   }, [login, setLoading]);
+
+  useEffect(() => {
+    const reloadProfile = async () => {
+      const isReload = performance.navigation.type === 1 || (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming)?.type === "reload";
+      if (isReload) {
+        // ✅ This block runs only on page reload
+        const response = await apiClient.profile()
+        updateUser(response.data as User)
+      }
+    }
+    reloadProfile()
+  }, []);
 
 
   return (

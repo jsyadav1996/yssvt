@@ -140,7 +140,7 @@ router.get('/', requireMember, getAllUsers);
 // @route   GET /api/users/me
 // @desc    Get current user
 // @access  Private
-router.get('/me', getCurrentUser);
+router.get('/profile', getCurrentUser);
 
 // @route   GET /api/users/:id
 // @desc    Get user by ID
