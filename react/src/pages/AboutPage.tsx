@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Eye, Target, Users, Heart, GraduationCap, Home, Phone, Mail } from 'lucide-react'
+import { Eye, Target } from 'lucide-react'
 
 export default function AboutPage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
