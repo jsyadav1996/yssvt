@@ -19,6 +19,8 @@ import DonationEditPage from '@/pages/DonationEditPage'
 import ProfilePage from '@/pages/ProfilePage'
 import BoardMemberPage from '@/pages/BoardMemberPage'
 import ITTeamPage from '@/pages/ITTeamPage'
+import ContactPage from '@/pages/ContactPage'
+import AboutPage from '@/pages/AboutPage'
 
 // Simple route configuration for navigation
 export const navigationRoutes = [
@@ -29,6 +31,8 @@ export const navigationRoutes = [
   { path: '/donations', title: 'Donations', icon: '❤️', requiresAuth: true, showAfterLogin: true },
   { path: '/board-members', title: 'Board Members', icon: '👔', requiresAuth: false, showAfterLogin: true },
   { path: '/it-team', title: 'IT Team', icon: '💻', requiresAuth: false, showAfterLogin: true },
+  { path: '/contact', title: 'Contact Us', icon: '📞', requiresAuth: false, showAfterLogin: true },
+  { path: '/about', title: 'About Us', icon: 'ℹ️', requiresAuth: false, showAfterLogin: true },
   { path: '/profile', title: 'Profile', icon: '👤', requiresAuth: true, showAfterLogin: true },
 ]
 
@@ -54,8 +58,10 @@ export function AppRoutes() {
       <Route path="/events" element={<EventsPage />} />
       <Route path="/events/:id" element={<EventDetailPage />} />
       <Route path="/members" element={<MembersPage />} />
+      <Route path="/about" element={<AboutPage />} />
       <Route path="/board-members" element={<BoardMemberPage />} />
       <Route path="/it-team" element={<ITTeamPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       
       {/* Protected Routes - Check if user exists */}
       <Route 
