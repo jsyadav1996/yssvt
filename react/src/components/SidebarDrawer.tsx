@@ -26,7 +26,7 @@ export function SidebarDrawer() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
 
-  const navItems = navigationRoutes.filter(item => item.requiresAuth ? !!user : true);
+  const navItems = navigationRoutes.filter(item => item.requiresAuth ? ((user) ? item.showAfterLogin : false) : ((user) ? item.showAfterLogin : true));
 
   useEffect(() => {
     // Check if already installed
@@ -188,22 +188,22 @@ export function SidebarDrawer() {
         <nav className="p-3 sm:p-4">
           <div className="space-y-1 sm:space-y-2">
             {navItems.map((item) => (
-              <button
-                key={item.path}
-                className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-left transition-colors ${
-                  isActive(item.path)
-                    ? 'bg-primary-50 text-primary-700 border border-primary-200'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-                onClick={() => handleNavigation(item.path)}
-              >
-                <span className={`h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center ${
-                  isActive(item.path) ? 'text-primary-600' : 'text-gray-500'
-                }`}>
-                  {navigationRoutes.find(r => r.path === item.path)?.icon || '📄'}
-                </span>
-                <span className="font-medium text-sm sm:text-base">{item.title}</span>
-              </button>
+                  <button
+                    key={item.path}
+                    className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-left transition-colors ${
+                      isActive(item.path)
+                        ? 'bg-primary-50 text-primary-700 border border-primary-200'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                    onClick={() => handleNavigation(item.path)}
+                  >
+                    <span className={`h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center ${
+                      isActive(item.path) ? 'text-primary-600' : 'text-gray-500'
+                    }`}>
+                      {navigationRoutes.find(r => r.path === item.path)?.icon || '📄'}
+                    </span>
+                    <span className="font-medium text-sm sm:text-base">{item.title}</span>
+                  </button>
             ))}
           </div>
         </nav>

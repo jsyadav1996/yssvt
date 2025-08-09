@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { apiClient, User } from '@/lib/api'
 import { Save, User as UserIcon, Mail, Phone, MapPin, Shield, Camera, Eye, EyeOff } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
+import ImagePopup from './ImagePopup'
 
 interface UserFormData {
   firstName: string
@@ -89,6 +90,8 @@ const UserForm: React.FC<UserFormProps> = ({
     file: null,
     preview: null
   })
+
+  const [showImagePopup, setShowImagePopup] = useState(false)
 
   // Get form title and description based on mode
   const getFormInfo = () => {
@@ -294,12 +297,17 @@ const UserForm: React.FC<UserFormProps> = ({
           </label>
           <div className="flex items-center space-x-4">
             {/* Image Preview */}
-            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-300 flex items-center justify-center">
+            <div 
+              className={`w-20 h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-300 flex items-center justify-center ${
+                profileImage.preview ? 'cursor-pointer hover:border-primary-400 transition-colors' : ''
+              }`}
+              onClick={() => profileImage.preview && setShowImagePopup(true)}
+            >
               {profileImage.preview ? (
                 <img 
                   src={profileImage.preview} 
                   alt="Profile preview" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                 />
               ) : (
                 <Camera className="h-8 w-8 text-gray-400" />
@@ -691,6 +699,18 @@ const UserForm: React.FC<UserFormProps> = ({
           </button>
         </div>
       </form>
+
+      {/* Image Popup */}
+      {profileImage.preview && (
+        <ImagePopup
+          isOpen={showImagePopup}
+          onClose={() => setShowImagePopup(false)}
+          imageSrc={profileImage.preview}
+          imageAlt="Profile Image"
+          name={`${formData.firstName} ${formData.lastName}`.trim() || 'Profile Image'}
+          designation={mode === 'profile' ? 'Your Profile' : 'Member Profile'}
+        />
+      )}
     </div>
   )
 }

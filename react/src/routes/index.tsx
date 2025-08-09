@@ -17,15 +17,19 @@ import DonationAddPage from '@/pages/DonationAddPage'
 import DonationDetailPage from '@/pages/DonationDetailPage'
 import DonationEditPage from '@/pages/DonationEditPage'
 import ProfilePage from '@/pages/ProfilePage'
+import BoardMemberPage from '@/pages/BoardMemberPage'
+import ITTeamPage from '@/pages/ITTeamPage'
 
 // Simple route configuration for navigation
 export const navigationRoutes = [
-  { path: '/', title: 'Home', icon: '🏠', requiresAuth: false },
-  { path: '/dashboard', title: 'Dashboard', icon: '🏠', requiresAuth: true },
-  { path: '/members', title: 'Members', icon: '👥', requiresAuth: true },
-  { path: '/events', title: 'Events', icon: '📅', requiresAuth: false },
-  { path: '/donations', title: 'Donations', icon: '❤️', requiresAuth: true },
-  { path: '/profile', title: 'Profile', icon: '👤', requiresAuth: true },
+  { path: '/', title: 'Home', icon: '🏠', requiresAuth: false, showAfterLogin: false },
+  { path: '/dashboard', title: 'Dashboard', icon: '📊', requiresAuth: true, showAfterLogin: true },
+  { path: '/members', title: 'Members', icon: '👥', requiresAuth: true, showAfterLogin: true },
+  { path: '/events', title: 'Events', icon: '📅', requiresAuth: false, showAfterLogin: true },
+  { path: '/donations', title: 'Donations', icon: '❤️', requiresAuth: true, showAfterLogin: true },
+  { path: '/board-members', title: 'Board Members', icon: '👔', requiresAuth: false, showAfterLogin: true },
+  { path: '/it-team', title: 'IT Team', icon: '💻', requiresAuth: false, showAfterLogin: true },
+  { path: '/profile', title: 'Profile', icon: '👤', requiresAuth: true, showAfterLogin: true },
 ]
 
 export function AppRoutes() {
@@ -33,7 +37,10 @@ export function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route 
+        path="/" 
+        element={user ? <Navigate to="/dashboard" replace /> : <HomePage />} 
+      />
       <Route 
         path="/login" 
         element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
@@ -47,6 +54,8 @@ export function AppRoutes() {
       <Route path="/events" element={<EventsPage />} />
       <Route path="/events/:id" element={<EventDetailPage />} />
       <Route path="/members" element={<MembersPage />} />
+      <Route path="/board-members" element={<BoardMemberPage />} />
+      <Route path="/it-team" element={<ITTeamPage />} />
       
       {/* Protected Routes - Check if user exists */}
       <Route 
