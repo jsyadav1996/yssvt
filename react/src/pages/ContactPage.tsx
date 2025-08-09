@@ -5,7 +5,7 @@ export default function ContactPage() {
     {
       name: 'WhatsApp',
       icon: MessageCircle,
-      url: 'https://wa.me/1234567890',
+      url: 'https://wa.me/6355757025',
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       hoverColor: 'hover:bg-green-100',
