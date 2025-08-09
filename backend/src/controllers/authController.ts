@@ -19,7 +19,7 @@ const generateToken = (userId: number): string => {
 // @access  Public
 export const register = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, email, password, phone, address } = req.body;
+    const { firstName, lastName, email, password } = req.body;
 
     // Check if user already exists
     const existingUser = await userService.findUserByEmail(email);
@@ -35,9 +35,7 @@ export const register = async (req: Request, res: Response) => {
       firstName,
       lastName,
       email,
-      password,
-      phone,
-      address
+      password
     });
 
     // Generate token

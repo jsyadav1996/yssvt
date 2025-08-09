@@ -79,8 +79,18 @@ export default function LoginPage() {
     <div className="min-h-screen bg-white">
 
       {/* Main Content */}
-      <main className="px-3 sm:px-4 py-4 sm:py-6">
+      <main className="px-3 sm:px-4 sm:py-6">
         <div className="max-w-sm mx-auto">
+
+          {/* Page Header */}
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              Welcome Back
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600">
+              Sign in to your YSSVT account
+            </p>
+          </div>
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
@@ -173,10 +183,10 @@ export default function LoginPage() {
               {loading ? (
                 <div className="flex items-center justify-center">
                   <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent mr-2"></div>
-                  <span className="text-sm sm:text-base">Signing in...</span>
+                  <span className="text-sm sm:text-base">Logging in...</span>
                 </div>
               ) : (
-                'Sign In'
+                'Log In'
               )}
             </button>
           </form>
@@ -193,7 +203,7 @@ export default function LoginPage() {
             <p className="text-xs sm:text-sm text-gray-600">
               Don't have an account?{' '}
               <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-                Sign up
+                Register
               </Link>
             </p>
           </div>

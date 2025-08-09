@@ -25,8 +25,6 @@ router.post('/register', [
   body('lastName').trim().isLength({ min: 2, max: 50 }).withMessage('Last name must be between 2 and 50 characters'),
   body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
-  body('phone').optional().isMobilePhone('any').withMessage('Please provide a valid phone number'),
-  body('address').optional().trim().isLength({ max: 200 }).withMessage('Address must not exceed 200 characters'),
   handleValidationErrors
 ], register);
 

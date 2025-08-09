@@ -246,7 +246,7 @@ export default function MembersPage() {
                   ) : (
                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary-100 rounded-full flex items-center justify-center">
                       <span className="text-primary-600 font-semibold text-sm sm:text-base">
-                        {member.firstName.charAt(0)}{member.lastName.charAt(0)}
+                        {member.firstName.charAt(0).toUpperCase()}{member.lastName.charAt(0).toUpperCase()}
                       </span>
                     </div>
                   )}

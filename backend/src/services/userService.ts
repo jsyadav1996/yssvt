@@ -126,8 +126,6 @@ export class UserService {
         lastName: data.lastName,
         email: data.email,
         password: hashedPassword,
-        phone: data.phone,
-        address: data.address,
         role: 'member' // Default role for registration
       },
       select: userSelectWithoutPassword

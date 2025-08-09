@@ -175,9 +175,9 @@ export function SidebarDrawer() {
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-gray-500 active:text-gray-700 p-1"
+            className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-all duration-200 shadow-sm hover:shadow-md"
           >
-            <X className="h-5 w-5 sm:h-6 sm:w-6" />
+            <X className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
 
