@@ -48,8 +48,10 @@ export const getAllUsers = async (req: Request, res: Response) => {
     const search = req.query.search as string || '';
     const role = req.query.role as string || '';
 
+    // Decode the search parameter to convert + back to spaces
+    const decodedSearch = search ? decodeURIComponent(search.replace(/\+/g, ' ')) : '';
     const result = await userService.getUsers({
-      search,
+      search: decodedSearch,
       role: role as any,
       page,
       limit
@@ -70,8 +72,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
 
 // @desc    Get user by ID
 // @access  Private
-export const getUserById = async (req: Request, res: Response) => {
-  console.log('getUserById', req.params.id)
+export const getUserById = async (req: AuthRequest, res: Response) => {
   try {
     const user = await userService.findUserById(parseInt(req.params.id));
     
@@ -82,9 +83,21 @@ export const getUserById = async (req: Request, res: Response) => {
       });
     }
 
+    // Get the current user's role from the request
+    const currentUserRole = req.user?.role;
+    
+    // Create a copy of the user data without phone field if user is not admin/system_admin
+    let userData;
+    if (currentUserRole !== 'admin' && currentUserRole !== 'system_admin') {
+      const { phone, ...userWithoutPhone } = user;
+      userData = userWithoutPhone;
+    } else {
+      userData = user;
+    }
+
     return res.json({
       success: true,
-      data: user
+      data: userData
     });
   } catch (error) {
     console.error('Get user error:', error);

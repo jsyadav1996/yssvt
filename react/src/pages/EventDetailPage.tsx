@@ -78,7 +78,7 @@ const EventDetailPage: React.FC = () => {
   }
 
   // Check if user can edit/delete events
-  const canManageEvents = currentUser?.role === 'admin' || currentUser?.role === 'manager'
+  const canManageEvents = currentUser?.role === 'system_admin'
 
   if (loading) {
     return (

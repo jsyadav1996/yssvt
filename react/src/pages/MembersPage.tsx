@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth'
 import { apiClient, User, PaginationInfo } from '@/lib/api'
-import { Search, Plus, Users, MapPin, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react'
+import { Search, Plus, Users, ChevronLeft, ChevronRight, Edit, Trash2 } from 'lucide-react'
 import { useRoleCheck } from '@/utils/roleCheck'
 // useRoleCheck().isAdmin
 
 export default function MembersPage() {
   const navigate = useNavigate()
-  const { user: currentUser } = useAuthStore()
   const { isAdmin, isSystemAdmin } = useRoleCheck()
   const [members, setMembers] = useState<User[]>([])
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
@@ -201,20 +199,21 @@ export default function MembersPage() {
             {members.map((member) => (
               <div
                 key={member.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow relative group"
+                className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow relative group cursor-pointer"
+                onClick={() => navigate(`/members/${member.id}`)}
               >
                 {/* Action Buttons */}
-                <div className="absolute top-3 sm:top-4 right-3 sm:right-4 flex gap-1">
+                <div className="absolute top-3 sm:top-4 right-3 sm:right-4 flex gap-2">
                   {(isAdmin || isSystemAdmin) && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         navigate(`/members/${member.id}/edit`)
                       }}
-                      className="p-1 sm:p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                      className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-blue-200 hover:border-blue-300"
                       title="Edit member"
                     >
-                      <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                   )}
                   
@@ -224,18 +223,15 @@ export default function MembersPage() {
                         e.stopPropagation()
                         handleDeleteMember(member.id, `${member.firstName} ${member.lastName}`)
                       }}
-                      className="p-1 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-red-200 hover:border-red-300"
                       title="Delete member"
                     >
-                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                   )}
                 </div>
 
-                <div 
-                  className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4 cursor-pointer"
-                  onClick={() => navigate(`/members/${member.id}`)}
-                >
+                <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
                   
                   {member.profileImagePath ? (
                     <img 
@@ -255,29 +251,14 @@ export default function MembersPage() {
                     <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
                       {member.firstName} {member.lastName}
                     </h3>
-                    <p className="text-xs sm:text-sm text-gray-600">{member.email}</p>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(member.role)}`}>
+                      {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
+                    </span>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  {member.phone && (
-                    <div className="flex items-center text-xs sm:text-sm text-gray-600">
-                      <span className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2">📞</span>
-                      {member.phone}
-                    </div>
-                  )}
-                  
-                  {member.address && (
-                    <div className="flex items-center text-xs sm:text-sm text-gray-600">
-                      <MapPin className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                      <span className="truncate">{member.address}</span>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(member.role)}`}>
-                      {member.role}
-                    </span>
+                  <div className="flex items-center justify-end">
                     <span className="text-xs text-gray-500">
                       Joined {formatDate(member.createdAt)}
                     </span>
@@ -295,20 +276,6 @@ export default function MembersPage() {
           <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
             {searchTerm ? 'No members found' : 'No members yet'}
           </h3>
-          <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">
-            {searchTerm 
-              ? 'Try adjusting your search terms'
-              : 'Get started by adding your first community member'
-            }
-          </p>
-          {!searchTerm && (currentUser?.role === 'admin' || currentUser?.role === 'manager') && (
-            <button
-              onClick={() => navigate('/members/new')}
-              className="btn-primary text-sm sm:text-base"
-            >
-              Add First Member
-            </button>
-          )}
         </div>
       )}
 

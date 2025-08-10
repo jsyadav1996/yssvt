@@ -11,8 +11,6 @@ const MemberEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
 
   const handleSuccess = () => {
-    // Navigate back to member detail page after successful update
-    navigate(`/members/${id}`)
   }
 
   const handleCancel = () => {

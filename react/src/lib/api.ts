@@ -239,7 +239,6 @@ class ApiClient {
     
     if (search) params.append('search', search)
     if (role) params.append('role', role)
-    if (isActive !== undefined) params.append('isActive', isActive.toString())
     
     return this.request(`/users?${params.toString()}`)
   }

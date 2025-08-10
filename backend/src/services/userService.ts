@@ -95,6 +95,8 @@ const userSelectWithoutPassword = {
   updatedAt: true
 };
 
+
+
 export class UserService {
   async createUser(data: CreateUserData): Promise<Omit<User, 'password'>> {
     console.log('data', data)
@@ -180,10 +182,23 @@ export class UserService {
     const where: any = {}
     
     if (search) {
+      // Split search text into words for cross-column search
+      const searchWords = search.trim().split(/\s+/).filter(word => word.length > 0)
+      
       where.OR = [
+        // Search in individual fields
         { firstName: { contains: search, mode: 'insensitive' } },
         { lastName: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } }
+        { email: { contains: search, mode: 'insensitive' } },
+        // Cross-column search: search words can be in either firstName or lastName
+        ...(searchWords.length > 1 ? [{
+          AND: searchWords.map(word => ({
+            OR: [
+              { firstName: { contains: word, mode: 'insensitive' } },
+              { lastName: { contains: word, mode: 'insensitive' } }
+            ]
+          }))
+        }] : [])
       ]
     }
     
@@ -246,15 +261,32 @@ export class UserService {
   }
 
   async searchUsers(searchText: string) {
+    const where: any = {}
+    
+    if (searchText.trim()) {
+      // Split search text into words for cross-column search
+      const searchWords = searchText.trim().split(/\s+/).filter(word => word.length > 0)
+      
+      where.OR = [
+        // Search in individual fields
+        { firstName: { contains: searchText, mode: 'insensitive' } },
+        { lastName: { contains: searchText, mode: 'insensitive' } },
+        { email: { contains: searchText, mode: 'insensitive' } },
+        { phone: { contains: searchText, mode: 'insensitive' } },
+        // Cross-column search: search words can be in either firstName or lastName
+        ...(searchWords.length > 1 ? [{
+          AND: searchWords.map(word => ({
+            OR: [
+              { firstName: { contains: word, mode: 'insensitive' } },
+              { lastName: { contains: word, mode: 'insensitive' } }
+            ]
+          }))
+        }] : [])
+      ]
+    }
+    
     const users = await prisma.user.findMany({
-      where: {
-        OR: [
-          { firstName: { contains: searchText, mode: 'insensitive' } },
-          { lastName: { contains: searchText, mode: 'insensitive' } },
-          { email: { contains: searchText, mode: 'insensitive' } },
-          { phone: { contains: searchText, mode: 'insensitive' } }
-        ]
-      },
+      where,
       select: {
         id: true,
         firstName: true,

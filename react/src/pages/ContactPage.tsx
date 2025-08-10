@@ -120,25 +120,25 @@ export default function ContactPage() {
             {contactInfo.map((contact) => {
               const IconComponent = contact.icon
               return (
-                <div
+                <a
                   key={contact.title}
-                  className="p-4 sm:p-6 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+                  href={contact.link}
+                  target={contact.title === 'Address' ? '_blank' : undefined}
+                  rel={contact.title === 'Address' ? 'noopener noreferrer' : undefined}
+                  className="group p-4 sm:p-6 rounded-xl border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-primary-300 hover:shadow-md transition-all duration-200 cursor-pointer"
                 >
                   <div className="text-center">
-                    <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary-100 mb-3 sm:mb-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-primary-100 mb-3 sm:mb-4 group-hover:scale-110 transition-transform duration-200">
                       <IconComponent className="h-6 w-6 sm:h-8 sm:w-8 text-primary-600" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 sm:mb-2">
+                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1 sm:mb-2 group-hover:text-primary-700 transition-colors duration-200">
                       {contact.title}
                     </h3>
-                    <a
-                      href={contact.link}
-                      className="text-xs sm:text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200 break-words"
-                    >
+                    <p className="text-xs sm:text-sm text-gray-600 group-hover:text-primary-600 transition-colors duration-200 break-words">
                       {contact.value}
-                    </a>
+                    </p>
                   </div>
-                </div>
+                </a>
               )
             })}
           </div>

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { getAllEvents, getEventById, createEvent, updateEvent, deleteEvent, deleteEventMedia } from '../controllers/eventController';
-import { authMiddleware, requireAdmin } from '../middleware/auth';
+import { authMiddleware, requireSystemAdmin } from '../middleware/auth';
 import { uploadMultipleImages } from '../middleware/upload';
 
 const router = Router();
@@ -32,7 +32,7 @@ router.get('/:id', getEventById);
 // @route   POST /api/events
 // @desc    Create new event (manager/admin only)
 // @access  Private
-router.post('/', authMiddleware, requireAdmin, uploadMultipleImages, [
+router.post('/', authMiddleware, requireSystemAdmin, uploadMultipleImages, [
   body('title').trim().isLength({ min: 3, max: 100 }).withMessage('Title must be between 3 and 100 characters'),
   body('date').isISO8601().withMessage('Please provide a valid date'),
   handleValidationErrors
@@ -41,7 +41,7 @@ router.post('/', authMiddleware, requireAdmin, uploadMultipleImages, [
 // @route   PUT /api/events/:id
 // @desc    Update event (manager/admin only)
 // @access  Private
-router.put('/:id', authMiddleware, requireAdmin, uploadMultipleImages, [
+router.put('/:id', authMiddleware, requireSystemAdmin, uploadMultipleImages, [
   body('title').optional().trim().isLength({ min: 3, max: 100 }),
   body('date').optional().isISO8601(),
   handleValidationErrors
@@ -50,11 +50,11 @@ router.put('/:id', authMiddleware, requireAdmin, uploadMultipleImages, [
 // @route   DELETE /api/events/:id
 // @desc    Delete event (manager/admin only)
 // @access  Private
-router.delete('/:id', authMiddleware, requireAdmin, deleteEvent);
+router.delete('/:id', authMiddleware, requireSystemAdmin, deleteEvent);
 
 // @route   DELETE /api/events/media/:mediaId
 // @desc    Delete individual event media (manager/admin only)
 // @access  Private
-router.delete('/media/:mediaId', authMiddleware, requireAdmin, deleteEventMedia);
+router.delete('/media/:mediaId', authMiddleware, requireSystemAdmin, deleteEventMedia);
 
 export default router; 

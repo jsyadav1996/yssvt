@@ -180,7 +180,7 @@ export default function EventsPage() {
             {hasEvents ? `Manage ${eventCounts.total} community events` : 'Manage community events'}
           </p>
         </div>
-        {(isAdmin || isSystemAdmin) && (
+        {(isSystemAdmin) && (
           <button
             onClick={() => navigate('/events/add')}
             className="btn-primary flex items-center gap-2 text-sm sm:text-base"
@@ -205,28 +205,26 @@ export default function EventsPage() {
               >
                 <div className="flex items-start justify-between mb-3 sm:mb-4">
                   <h3 className="font-semibold text-gray-900 text-base sm:text-lg">{event.title}</h3>
-                  {(isAdmin || isSystemAdmin) && (
-                    <div className="flex gap-1 sm:gap-2">
+                    {(isSystemAdmin) && (
+                    <div className="flex gap-2">
                       <button
                         onClick={(e) => handleEditEvent(event.id, e)}
-                        className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                        className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-blue-200 hover:border-blue-300"
                         title="Edit event"
-                      >
-                        <Edit className="h-4 w-4" />
+                        >
+                        <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </button>
                       <button
                         onClick={(e) => handleDeleteEvent(event.id, e)}
-                        className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                        className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-red-200 hover:border-red-300"
                         title="Delete event"
-                      >
-                        <Trash2 className="h-4 w-4" />
+                        >
+                        <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </button>
                     </div>
-                  )}
+                    )}
                 </div>
-                
-                <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2">{event.description}</p>
-                
+                                
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-center text-xs sm:text-sm text-gray-600">
                     <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />

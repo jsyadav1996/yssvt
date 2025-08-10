@@ -58,8 +58,8 @@ export default function MemberDetailPage() {
     })
   }
 
-  const canEdit = currentUser?.role === 'admin' || currentUser?.role === 'manager' || currentUser?.id === id
-  const canDelete = (currentUser?.role === 'admin' || currentUser?.role === 'manager') && currentUser?.id !== id
+  const canEdit = currentUser?.role === 'admin' || currentUser?.role === 'system_admin'
+  const canDelete = currentUser?.role === 'admin' || currentUser?.role === 'system_admin'
 
   const handleDeleteMember = async () => {
     if (!member) return
@@ -149,7 +149,7 @@ export default function MemberDetailPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={() => navigate(-1)}
@@ -159,27 +159,27 @@ export default function MemberDetailPage() {
           </button>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Member Details</h1>
-            <p className="text-sm sm:text-base text-gray-600">View member information</p>
           </div>
         </div>
         
+        {/* Action Buttons */}
         {(canEdit || canDelete) && (
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2 sm:gap-3">
             {canEdit && (
               <button
                 onClick={() => navigate(`/members/${id}/edit`)}
-                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                 Edit
               </button>
             )}
             {canDelete && (
               <button
                 onClick={handleDeleteMember}
-                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
               >
-                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                 Delete
               </button>
             )}
@@ -278,11 +278,6 @@ export default function MemberDetailPage() {
             </h3>
             
             <div className="space-y-2 sm:space-y-3">
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Member ID</p>
-                <p className="text-sm sm:text-base text-gray-900 font-mono">{member.id}</p>
-              </div>
-              
               <div>
                 <p className="text-xs sm:text-sm text-gray-600">Role</p>
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(member.role)}`}>

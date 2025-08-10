@@ -238,21 +238,21 @@ export default function DonationsPage() {
                 
                 {/* Action Buttons */}
                 {(isAdmin || isSystemAdmin) && (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={(e) => handleEdit(e, donation.id)}
-                      className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                      className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-blue-200 hover:border-blue-300"
                       title="Edit donation"
                     >
-                      <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                     <button
                       onClick={(e) => handleDelete(e, donation.id)}
                       disabled={deletingId === donation.id}
-                      className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                      className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md border border-red-200 hover:border-red-300 disabled:opacity-50"
                       title="Delete donation"
                     >
-                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                   </div>
                 )}
@@ -264,12 +264,6 @@ export default function DonationsPage() {
                 </p>
               )}
               
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs sm:text-sm">
-                  <span className="text-gray-600">Date:</span>
-                  <span className="text-gray-900">{formatDate(donation.date || donation.createdAt)}</span>
-                </div>
-              </div>
             </div>
           ))}
         </div>

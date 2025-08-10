@@ -111,62 +111,6 @@ export default function HomePage() {
           </button>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white px-3 sm:px-4 py-6 sm:py-8">
-        <div className="space-y-4 sm:space-y-6">
-          <div>
-            <h3 className="text-base sm:text-lg font-bold mb-2">YSSVT Community</h3>
-            <p className="text-xs sm:text-sm text-gray-400">
-              Building a stronger community through connection, collaboration, and shared values.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <h4 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Quick Links</h4>
-              <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-400">
-                <li>
-                  <button
-                    onClick={() => navigate('/events')}
-                    className="active:text-white"
-                  >
-                    Events
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => navigate('/donations')}
-                    className="active:text-white"
-                  >
-                    Donations
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={() => navigate('/about')}
-                    className="active:text-white"
-                  >
-                    About Us
-                  </button>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Contact</h4>
-              <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-400">
-                <li>info@yssvt.org</li>
-                <li>+1 (555) 123-4567</li>
-                <li>123 Community St</li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-800 pt-3 sm:pt-4 text-center text-xs sm:text-sm text-gray-400">
-            <p>&copy; 2024 YSSVT Community. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 } 
