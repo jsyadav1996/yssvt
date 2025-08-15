@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { SidebarDrawer } from './SidebarDrawer';
 import { apiClient, User } from '@/lib/api';
 import { navigationRoutes } from '@/routes';
-
+import { useDashboardStore } from '@/store/dashboard'
 
 interface Page {
   children: React.ReactNode;
@@ -13,6 +13,7 @@ interface Page {
 export function Layout({ children }: Page) {
   const { user, updateUser } = useAuthStore();
   const location = useLocation();
+  const { updateOverview } = useDashboardStore()
 
   useEffect(() => {
     const reloadProfile = async () => {
@@ -24,13 +25,30 @@ export function Layout({ children }: Page) {
       }
     }
     reloadProfile()
+
+    const reloadDashboardData = async () => {
+      const isReload = performance.navigation.type === 1 || (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming)?.type === "reload";
+      if (isReload) {
+        // ✅ This block runs only on page reload
+        const response = await apiClient.getDashboardData()
+        if (response.success && response.data) {
+          updateOverview(response.data.overview)
+        }
+      }
+    }
+    reloadDashboardData()
   }, []);
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Header - Always show */}
-      <header className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 z-10">
+      <header className="sticky top-0 bg-white border-b border-gray-200 px-4 py-4 z-10 h-16">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             {/* Show sidebar for all users */}

@@ -275,24 +275,24 @@ const UserForm: React.FC<UserFormProps> = ({
   }
 
   return (
-    <div ref={formRef} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div ref={formRef} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         {/* Error/Success Messages */}
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-600">{error}</p>
+          <div className="bg-red-50 border border-red-200 text-red-600 px-3 sm:px-4 py-2 sm:py-3 rounded-xl text-xs sm:text-sm">
+            {error}
           </div>
         )}
         
         {success && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-green-600">{success}</p>
+          <div className="bg-green-50 border border-green-200 text-green-600 px-3 sm:px-4 py-2 sm:py-3 rounded-xl text-xs sm:text-sm">
+            {success}
           </div>
         )}
 
         {/* Profile Image Upload */}
-        <div>
-          <label htmlFor="profileImage" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="space-y-1 sm:space-y-2">
+          <label htmlFor="profileImage" className="block text-xs sm:text-sm font-medium text-gray-700">
             Profile Image
           </label>
           <div className="flex items-center space-x-4">
@@ -326,9 +326,9 @@ const UserForm: React.FC<UserFormProps> = ({
               />
               <label
                 htmlFor="profileImage"
-                className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+                className="cursor-pointer inline-flex items-center px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
               >
-                <Camera className="h-4 w-4 mr-2" />
+                <Camera className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 {profileImage.file ? 'Change Image' : 'Upload Image'}
               </label>
               {profileImage.file && (
@@ -341,13 +341,13 @@ const UserForm: React.FC<UserFormProps> = ({
         </div>
 
         {/* Name Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="space-y-1 sm:space-y-2">
+            <label htmlFor="firstName" className="block text-xs sm:text-sm font-medium text-gray-700">
               First Name *
             </label>
             <div className="relative">
-              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               <input
                 type="text"
                 id="firstName"
@@ -355,18 +355,18 @@ const UserForm: React.FC<UserFormProps> = ({
                 value={formData.firstName}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
                 placeholder="Enter first name"
               />
             </div>
           </div>
 
-          <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="space-y-1 sm:space-y-2">
+            <label htmlFor="lastName" className="block text-xs sm:text-sm font-medium text-gray-700">
               Last Name *
             </label>
             <div className="relative">
-              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               <input
                 type="text"
                 id="lastName"
@@ -374,7 +374,7 @@ const UserForm: React.FC<UserFormProps> = ({
                 value={formData.lastName}
                 onChange={handleInputChange}
                 required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
                 placeholder="Enter last name"
               />
             </div>
@@ -382,12 +382,12 @@ const UserForm: React.FC<UserFormProps> = ({
         </div>
 
         {/* Email Field */}
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="space-y-1 sm:space-y-2">
+          <label htmlFor="email" className="block text-xs sm:text-sm font-medium text-gray-700">
             Email Address *
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
             <input
               type="email"
               id="email"
@@ -395,52 +395,52 @@ const UserForm: React.FC<UserFormProps> = ({
               value={formData.email}
               onChange={handleInputChange}
               disabled={mode === 'profile'} // Email can't be changed in profile mode
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+              className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500 text-sm sm:text-base"
               placeholder="Enter email address"
             />
           </div>
         </div>
 
         {/* Password Field - Only for add mode */}
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="space-y-1 sm:space-y-2">
+          <label htmlFor="password" className="block text-xs sm:text-sm font-medium text-gray-700">
             Password
           </label>
           <div className="relative">
-            <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
             <input
               type={showPassword ? 'text' : 'password'}
               id="password"
               name="password"
               value={formData.password}
               onChange={handleInputChange}
-              className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full pl-10 pr-12 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
               placeholder="Enter password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+              className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
             </button>
           </div>
         </div>
 
         {/* Role Field - Only for add/edit modes */}
         {mode !== 'profile' && (
-          <div>
-            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="space-y-1 sm:space-y-2">
+            <label htmlFor="role" className="block text-xs sm:text-sm font-medium text-gray-700">
               Role
             </label>
             <div className="relative">
-              <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               <select
                 id="role"
                 name="role"
                 value={formData.role || 'member'}
                 onChange={handleInputChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
               >
                 <option value="">Select role</option>
                 <option value="member">Member</option>
@@ -452,28 +452,28 @@ const UserForm: React.FC<UserFormProps> = ({
         )}
 
         {/* Phone Field */}
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="space-y-1 sm:space-y-2">
+          <label htmlFor="phone" className="block text-xs sm:text-sm font-medium text-gray-700">
             Phone Number
           </label>
           <div className="relative">
-            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
             <input
               type="tel"
               id="phone"
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
               placeholder="Enter phone number"
             />
           </div>
         </div>
 
         {/* Personal Information Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="space-y-1 sm:space-y-2">
+            <label htmlFor="dob" className="block text-xs sm:text-sm font-medium text-gray-700">
               Date of Birth
             </label>
             <input
@@ -482,15 +482,15 @@ const UserForm: React.FC<UserFormProps> = ({
               name="dob"
               value={formData.dob}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="space-y-1 sm:space-y-2">
+            <label className="block text-xs sm:text-sm font-medium text-gray-700">
               Gender
             </label>
-            <div className="flex gap-6">
+            <div className="flex gap-4 sm:gap-6">
               <label className="flex items-center">
                 <input
                   type="radio"
@@ -500,7 +500,7 @@ const UserForm: React.FC<UserFormProps> = ({
                   onChange={handleInputChange}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                 />
-                <span className="ml-2 text-sm text-gray-700">Male</span>
+                <span className="ml-2 text-xs sm:text-sm text-gray-700">Male</span>
               </label>
               <label className="flex items-center">
                 <input
@@ -511,35 +511,35 @@ const UserForm: React.FC<UserFormProps> = ({
                   onChange={handleInputChange}
                   className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                 />
-                <span className="ml-2 text-sm text-gray-700">Female</span>
+                <span className="ml-2 text-xs sm:text-sm text-gray-700">Female</span>
               </label>
             </div>
           </div>
         </div>
 
         {/* Address Field */}
-        <div>
-          <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="space-y-1 sm:space-y-2">
+          <label htmlFor="address" className="block text-xs sm:text-sm font-medium text-gray-700">
             Address
           </label>
           <div className="relative">
-            <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <MapPin className="absolute left-3 top-3 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
             <textarea
               id="address"
               name="address"
               value={formData.address}
               onChange={handleInputChange}
               rows={3}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
               placeholder="Enter address"
             />
           </div>
         </div>
 
         {/* Location Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          <div className="space-y-1 sm:space-y-2">
+            <label htmlFor="city" className="block text-xs sm:text-sm font-medium text-gray-700">
               City
             </label>
             <input
@@ -548,13 +548,13 @@ const UserForm: React.FC<UserFormProps> = ({
               name="city"
               value={formData.city}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
               placeholder="Enter city"
             />
           </div>
 
-          <div>
-            <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="space-y-1 sm:space-y-2">
+            <label htmlFor="state" className="block text-xs sm:text-sm font-medium text-gray-700">
               State
             </label>
             <input
@@ -563,13 +563,13 @@ const UserForm: React.FC<UserFormProps> = ({
               name="state"
               value={formData.state}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
               placeholder="Enter state"
             />
           </div>
 
-          <div>
-            <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="space-y-1 sm:space-y-2">
+            <label htmlFor="pincode" className="block text-xs sm:text-sm font-medium text-gray-700">
               Pincode
             </label>
             <input
@@ -578,16 +578,16 @@ const UserForm: React.FC<UserFormProps> = ({
               name="pincode"
               value={formData.pincode}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
               placeholder="Enter pincode"
             />
           </div>
         </div>
 
         {/* Occupation Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="occupationField" className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          <div className="space-y-1 sm:space-y-2">
+            <label htmlFor="occupationField" className="block text-xs sm:text-sm font-medium text-gray-700">
               Occupation Field
             </label>
             <select
@@ -595,7 +595,7 @@ const UserForm: React.FC<UserFormProps> = ({
               name="occupationField"
               value={formData.occupationField}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
             >
               <option value="">Select occupation field</option>
               <option value="agriculture_and_allied">Agriculture and Allied</option>
@@ -614,8 +614,8 @@ const UserForm: React.FC<UserFormProps> = ({
             </select>
           </div>
 
-          <div>
-            <label htmlFor="occupation" className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="space-y-1 sm:space-y-2">
+            <label htmlFor="occupation" className="block text-xs sm:text-sm font-medium text-gray-700">
               Occupation
             </label>
             <select
@@ -623,7 +623,7 @@ const UserForm: React.FC<UserFormProps> = ({
               name="occupation"
               value={formData.occupation}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
             >
               <option value="">Select occupation</option>
               <option value="farmer">Farmer</option>
@@ -685,14 +685,14 @@ const UserForm: React.FC<UserFormProps> = ({
           <button
             type="button"
             onClick={handleCancel}
-            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-colors text-sm sm:text-base"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="btn-primary flex items-center space-x-2 disabled:opacity-50"
+            className="bg-primary-600 text-white py-2 sm:py-3 px-4 sm:px-6 rounded-xl font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base flex items-center space-x-2"
           >
             <Save className="h-4 w-4" />
             <span>{saving ? 'Saving...' : formInfo.submitText}</span>

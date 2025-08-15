@@ -3,10 +3,12 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { Eye, EyeOff } from 'lucide-react'
 import { apiClient } from '@/lib/api'
+import { useDashboardStore } from '@/store/dashboard'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const { login } = useAuthStore()
+  const { updateOverview } = useDashboardStore()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -59,6 +61,11 @@ export default function LoginPage() {
       if (response.success && response.data) {
         // Login successful
         login(response.data.user, response.data.token)
+        apiClient.getDashboardData().then((response) => {
+          if (response.success && response.data) {
+            updateOverview(response.data.overview)
+          }
+        })
         navigate('/dashboard')
       } else {
         // Login failed
@@ -76,11 +83,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="bg-white">
 
-      {/* Main Content */}
-      <main className="px-3 sm:px-4 sm:py-6">
-        <div className="max-w-sm mx-auto">
+      <div className="max-w-sm mx-auto">
 
           {/* Page Header */}
           <div className="text-center mb-6 sm:mb-8">
@@ -208,7 +213,6 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
   )
 } 

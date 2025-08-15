@@ -116,6 +116,40 @@ interface Donation {
   }
 }
 
+// Dashboard interfaces
+interface DashboardOverview {
+  totalEvents: number
+  totalDonations: number
+  totalMembers: number
+  totalDonationAmount: number
+}
+
+interface RecentActivity {
+  id: string
+  activityType: 'event' | 'donation' | 'user'
+  description: string
+  date: string
+  title?: string
+  amount?: number
+  purpose?: string
+  firstName?: string
+  lastName?: string
+}
+
+interface MonthlyStats {
+  month: number
+  events: number
+  donations: number
+  newMembers: number
+}
+
+interface DashboardData {
+  overview: DashboardOverview
+  recentActivities: RecentActivity[]
+  monthlyStats: MonthlyStats[]
+  currentYear: number
+}
+
 interface DonationsWithPagination {
   donations: Donation[],
   totalDonationAmount: number,
@@ -231,7 +265,7 @@ class ApiClient {
   }
 
   // User endpoints with pagination
-  async getAllUsers(page: number = 1, limit: number = 10, search?: string, role?: string, isActive?: string): Promise<ApiResponse<PaginatedUsersResponse>> {
+  async getAllUsers(page: number = 1, limit: number = 10, search?: string, role?: string): Promise<ApiResponse<PaginatedUsersResponse>> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString()
@@ -357,6 +391,11 @@ class ApiClient {
       method: 'DELETE'
     })
   }
+
+  // Dashboard API
+  async getDashboardData(): Promise<ApiResponse<DashboardData>> {
+    return this.request('/dashboard')
+  }
 }
 
 export const apiClient = new ApiClient()
@@ -367,9 +406,12 @@ export type {
   Event, 
   EventMedia,
   Donation, 
-  CreateEventData, 
   CreateDonationData, 
   UserProfile,
   PaginationInfo,
-  PaginatedUsersResponse
+  PaginatedUsersResponse,
+  DashboardData,
+  DashboardOverview,
+  RecentActivity,
+  MonthlyStats
 } 

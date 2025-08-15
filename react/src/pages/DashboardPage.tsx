@@ -1,16 +1,27 @@
 import { useAuthStore } from '@/store/auth'
 import { Calendar, Users, Heart, Settings } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useDashboardStore } from '@/store/dashboard'
 
 export default function DashboardPage() {
   const { user } = useAuthStore()
   const navigate = useNavigate()
+  const { overview } = useDashboardStore()
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount)
+  }
 
   const dashboardItems = [
     {
       icon: Calendar,
       title: 'Events',
-      description: 'View and manage community events',
+      description: ['system_admin'].includes(user?.role || '') ? 'View and manage community events' : 'View community events',
       href: '/events',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
@@ -18,7 +29,7 @@ export default function DashboardPage() {
     {
       icon: Heart,
       title: 'Donations',
-      description: 'Make and track donations',
+      description: ['system_admin', 'admin'].includes(user?.role || '') ? 'Make and track donations' : 'View donations',
       href: '/donations',
       color: 'text-red-600',
       bgColor: 'bg-red-50',
@@ -58,19 +69,19 @@ export default function DashboardPage() {
         <div className="card p-2 sm:p-3 text-center">
           <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600 mx-auto mb-1 sm:mb-2" />
           <p className="text-xs text-gray-500 mb-1">Events</p>
-          <p className="text-sm sm:text-lg font-bold text-gray-900">5</p>
+          <p className="text-sm sm:text-lg font-bold text-gray-900">{overview.totalEvents}</p>
         </div>
         
         <div className="card p-2 sm:p-3 text-center">
           <Users className="h-4 w-4 sm:h-6 sm:w-6 text-green-600 mx-auto mb-1 sm:mb-2" />
           <p className="text-xs text-gray-500 mb-1">Members</p>
-          <p className="text-sm sm:text-lg font-bold text-gray-900">127</p>
+          <p className="text-sm sm:text-lg font-bold text-gray-900">{overview.totalMembers}</p>
         </div>
         
         <div className="card p-2 sm:p-3 text-center">
           <Heart className="h-4 w-4 sm:h-6 sm:w-6 text-red-600 mx-auto mb-1 sm:mb-2" />
           <p className="text-xs text-gray-500 mb-1">Donations</p>
-          <p className="text-sm sm:text-lg font-bold text-gray-900">$12k</p>
+          <p className="text-sm sm:text-lg font-bold text-gray-900">{formatCurrency(overview.totalDonationAmount)}</p>
         </div>
       </div>
 
@@ -96,7 +107,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="card">
+      {/* <div className="card">
         <div className="p-3 sm:p-4 border-b border-gray-100">
           <h3 className="text-base sm:text-lg font-medium text-gray-900">Recent Activity</h3>
         </div>
@@ -145,7 +156,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </>
   )
 } 

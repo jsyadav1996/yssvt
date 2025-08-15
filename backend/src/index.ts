@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { prisma } from './lib/prisma';
 
-import { authRoutes, userRoutes, eventRoutes, donationRoutes } from './routes';
+import { authRoutes, userRoutes, eventRoutes, donationRoutes, dashboardRoutes } from './routes';
 import { errorHandler } from './middleware';
 
 dotenv.config();
@@ -53,6 +53,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/donations', donationRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

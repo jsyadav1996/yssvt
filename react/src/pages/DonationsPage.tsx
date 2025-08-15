@@ -64,14 +64,6 @@ export default function DonationsPage() {
     }).format(amount)
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
-
   const handleEdit = (e: React.MouseEvent, donationId: string) => {
     e.stopPropagation()
     navigate(`/donations/${donationId}/edit`)

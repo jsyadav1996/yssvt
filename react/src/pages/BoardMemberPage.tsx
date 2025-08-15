@@ -168,6 +168,7 @@ const MemberCard = ({ member, onImageClick }: { member: BoardMember, onImageClic
         <img
           src={member.image}
           alt={member.name}
+          loading="lazy"
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
           onError={(e) => {
             e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name)}&size=400&background=3B82F6&color=ffffff&font-size=0.33`

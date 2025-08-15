@@ -6,7 +6,7 @@ import { useRoleCheck } from '@/utils/roleCheck'
 
 export default function EventsPage() {
   const navigate = useNavigate()
-  const { isAdmin, isSystemAdmin } = useRoleCheck()
+  const { isSystemAdmin } = useRoleCheck()
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)

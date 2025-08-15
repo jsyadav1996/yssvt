@@ -10,6 +10,7 @@ import { getAllUsers,
     updateProfile
   } from '../controllers/userController';
 import { authMiddleware, requireAdmin, requireMember } from '../middleware/auth';
+import { protectSystemAdmin, preventSystemAdminCreation } from '../middleware/protectSystemAdmin';
 import { uploadSingleImage } from '../middleware/upload';
 
 const router = Router();
@@ -155,7 +156,7 @@ router.put('/profile', authMiddleware, uploadSingleImage, validateUserPayload, h
 // @route   POST /api/users
 // @desc    Create new user (admin only)
 // @access  Private
-router.post('/', authMiddleware, requireAdmin, uploadSingleImage, validateUserPayload, handleValidationErrors, createUser);
+router.post('/', authMiddleware, requireAdmin, uploadSingleImage, validateUserPayload, handleValidationErrors, preventSystemAdminCreation, createUser);
 
 // @route   POST /api/users/search
 // @desc    Search users by firstName, lastName, email, or phone
@@ -167,11 +168,11 @@ router.post('/search', authMiddleware, requireMember, [
 // @route   PUT /api/users/:id
 // @desc    Update user by ID (admin only)
 // @access  Private
-router.put('/:id', authMiddleware, requireAdmin, uploadSingleImage, validateUserPayload, handleValidationErrors, updateUser);
+router.put('/:id', authMiddleware, requireAdmin, uploadSingleImage, validateUserPayload, handleValidationErrors, protectSystemAdmin, updateUser);
 
 // @route   DELETE /api/users/:id
 // @desc    Delete user by ID (admin only)
 // @access  Private
-router.delete('/:id', authMiddleware, requireAdmin, deleteUser);
+router.delete('/:id', authMiddleware, requireAdmin, protectSystemAdmin, deleteUser);
 
 export default router; 
