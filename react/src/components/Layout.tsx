@@ -28,7 +28,7 @@ export function Layout({ children }: Page) {
 
     const reloadDashboardData = async () => {
       const isReload = performance.navigation.type === 1 || (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming)?.type === "reload";
-      if (isReload) {
+      if (isReload && user) {
         // ✅ This block runs only on page reload
         const response = await apiClient.getDashboardData()
         if (response.success && response.data) {
