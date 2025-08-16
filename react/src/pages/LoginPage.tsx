@@ -170,13 +170,12 @@ export default function LoginPage() {
                 />
                 <span className="ml-2 text-xs sm:text-sm text-gray-600">Remember me</span>
               </label>
-              <button
-                type="button"
+              <Link
+                to="/forgot-password"
                 className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium"
-                disabled={loading}
               >
                 Forgot password?
-              </button>
+              </Link>
             </div>
 
             {/* Submit Button */}

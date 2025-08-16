@@ -21,6 +21,8 @@ import BoardMemberPage from '@/pages/BoardMemberPage'
 import ITTeamPage from '@/pages/ITTeamPage'
 import ContactPage from '@/pages/ContactPage'
 import AboutPage from '@/pages/AboutPage'
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
+import ResetPasswordPage from '@/pages/ResetPasswordPage'
 
 // Simple route configuration for navigation
 export const navigationRoutes = [
@@ -52,6 +54,14 @@ export function AppRoutes() {
       <Route 
         path="/register" 
         element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} 
+      />
+      <Route 
+        path="/forgot-password" 
+        element={user ? <Navigate to="/dashboard" replace /> : <ForgotPasswordPage />} 
+      />
+      <Route 
+        path="/reset-password" 
+        element={user ? <Navigate to="/dashboard" replace /> : <ResetPasswordPage />} 
       />
 
       {/* Public Routes */}

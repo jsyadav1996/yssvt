@@ -396,6 +396,25 @@ class ApiClient {
   async getDashboardData(): Promise<ApiResponse<DashboardData>> {
     return this.request('/dashboard')
   }
+
+  // Password Reset API
+  async forgotPassword(email: string): Promise<ApiResponse<{ message: string }>> {
+    return this.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    })
+  }
+
+  async validateResetToken(token: string): Promise<ApiResponse<{ valid: boolean }>> {
+    return this.request(`/auth/validate-reset-token?token=${token}`)
+  }
+
+  async resetPassword(token: string, password: string): Promise<ApiResponse<{ message: string }>> {
+    return this.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password })
+    })
+  }
 }
 
 export const apiClient = new ApiClient()
@@ -406,6 +425,7 @@ export type {
   Event, 
   EventMedia,
   Donation, 
+  CreateEventData,
   CreateDonationData, 
   UserProfile,
   PaginationInfo,
