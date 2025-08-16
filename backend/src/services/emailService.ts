@@ -11,6 +11,12 @@ const emailConfig = {
   },
 };
 
+// Sender configuration
+const senderConfig = {
+  name: process.env.EMAIL_SENDER_NAME || 'YSSVT',
+  email: process.env.EMAIL_SENDER_EMAIL || process.env.GMAIL_USER || '',
+};
+
 // Create transporter
 const transporter = nodemailer.createTransport(emailConfig);
 
@@ -103,7 +109,7 @@ export const emailService = {
       const template = emailTemplates.passwordReset(resetLink, userName);
       
       const mailOptions = {
-        from: `"YSSVT" <${process.env.GMAIL_USER}>`,
+        from: `"${senderConfig.name}" <${senderConfig.email}>`,
         to: email,
         subject: template.subject,
         html: template.html,

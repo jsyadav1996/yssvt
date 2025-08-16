@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
-import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -35,31 +34,31 @@ export default defineConfig({
           },
           {
             src: '/icons/icon-128x128.png',
-            sizes: '128x128',
+            sizes: '128x125',
             type: 'image/png',
             purpose: 'maskable any'
           },
           {
             src: '/icons/icon-144x144.png',
-            sizes: '144x144',
+            sizes: '144x141',
             type: 'image/png',
             purpose: 'maskable any'
           },
           {
             src: '/icons/icon-152x152.png',
-            sizes: '152x152',
+            sizes: '152x148',
             type: 'image/png',
             purpose: 'maskable any'
           },
           {
             src: '/icons/icon-192x192.png',
-            sizes: '192x192',
+            sizes: '192x187',
             type: 'image/png',
             purpose: 'maskable any'
           },
           {
             src: '/icons/icon-384x384.png',
-            sizes: '384x384',
+            sizes: '384x375',
             type: 'image/png',
             purpose: 'maskable any'
           },
@@ -91,7 +90,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src')
+      '@': '/src'
     }
   },
   server: {
